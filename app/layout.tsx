@@ -8,25 +8,11 @@ import { Footer } from '@/components/footer'
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: 'PCZ Imóveis - Encontre o Imóvel Ideal',
-  description: 'Plataforma imobiliária para compra, venda e aluguel de imóveis. Conectamos corretores e clientes de forma simples e eficiente.',
-  generator: 'v0.app',
+  title: 'Fabiju Imóveis - Encontre o Imóvel Ideal',
+  description: 'Plataforma imobiliária para compra, venda e aluguel de imóveis. Atendimento personalizado e profissional.',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/logo.png',
+    apple: '/logo.png',
   },
 }
 

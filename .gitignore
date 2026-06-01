@@ -14,3 +14,7 @@ next.user-config.*
 node_modules
 .next/
 .DS_Store
+
+# API — credenciais e segredos nunca devem ir para o git
+**/appsettings.json
+**/appsettings.Production.json
