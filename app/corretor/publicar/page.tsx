@@ -25,6 +25,7 @@ export default function PublicarImovelPage() {
     preco:     "",
     descricao: "",
     whatsapp:  "",
+    endereco:  "",
     tipo:      "venda",
     quartos:   "",
     banheiros: "",
@@ -163,6 +164,7 @@ export default function PublicarImovelPage() {
         preco:     Number(formData.preco),
         descricao: formData.descricao,
         whatsapp:  formData.whatsapp,
+        endereco:  formData.endereco || undefined,
         tipo:      formData.tipo,
         quartos:   Number(formData.quartos) || 0,
         banheiros: Number(formData.banheiros) || 0,
@@ -278,6 +280,14 @@ export default function PublicarImovelPage() {
               value={formData.whatsapp}
               onChange={handleChange}
               placeholder="WhatsApp (ex: 5511999999999)"
+              className="w-full rounded-2xl border bg-card p-4"
+            />
+
+            <input
+              name="endereco"
+              value={formData.endereco}
+              onChange={handleChange}
+              placeholder="Endereço completo (ex: Rua das Flores, 123 - Bairro, Cidade)"
               className="w-full rounded-2xl border bg-card p-4"
             />
 

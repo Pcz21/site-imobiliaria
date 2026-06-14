@@ -48,6 +48,11 @@ public class Imovel
     [MaxLength(30)]
     public string? Whatsapp { get; set; }
 
+    [MaxLength(500)]
+    public string? Endereco { get; set; }
+
+    public int Leads { get; set; }
+
     // Listas serializadas como JSON no banco via value converter no DbContext
     public List<string> Imagens { get; set; } = new();
 

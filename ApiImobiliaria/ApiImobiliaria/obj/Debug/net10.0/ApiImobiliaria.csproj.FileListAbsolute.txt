@@ -159,3 +159,4 @@ C:\Users\ododk\Desktop\site-imobiliaria\ApiImobiliaria\ApiImobiliaria\obj\Debug\
 C:\Users\ododk\Desktop\site-imobiliaria\ApiImobiliaria\ApiImobiliaria\obj\Debug\net10.0\ApiImobiliaria.genruntimeconfig.cache
 C:\Users\ododk\Desktop\site-imobiliaria\ApiImobiliaria\ApiImobiliaria\obj\Debug\net10.0\ref\ApiImobiliaria.dll
 C:\Users\ododk\Desktop\site-imobiliaria\ApiImobiliaria\ApiImobiliaria\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\ododk\Desktop\site-imobiliaria\ApiImobiliaria\ApiImobiliaria\bin\Debug\net10.0\BCrypt.Net-Next.dll

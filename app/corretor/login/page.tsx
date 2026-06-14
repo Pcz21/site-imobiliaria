@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Building2, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { apiLogin } from "@/lib/api"
 
 export default function LoginCorretorPage() {
   const router = useRouter()
@@ -28,15 +27,21 @@ export default function LoginCorretorPage() {
     setIsLoading(true)
 
     try {
-      const { token, email: emailRetornado } = await apiLogin(email, senha)
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, senha }),
+      })
 
-      // Guarda token no localStorage (para chamadas à API) e em cookie (para middleware)
+      if (!res.ok) throw new Error("Email ou senha incorretos")
+
+      const { token, email: emailRetornado } = await res.json()
+
+      // Cookie já definido pelo servidor via Set-Cookie no response acima
       localStorage.setItem("token", token)
       localStorage.setItem("corretorLogado", JSON.stringify({ email: emailRetornado }))
-      const secure = window.location.protocol === "https:" ? "; Secure" : ""
-      document.cookie = `token=${token}; path=/; max-age=${24 * 60 * 60}; SameSite=Strict${secure}`
 
-      router.replace("/corretor/painel")
+      window.location.href = "/corretor/painel"
     } catch {
       setError("Email ou senha incorretos")
     } finally {

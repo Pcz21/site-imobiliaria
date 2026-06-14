@@ -40,4 +40,9 @@ public interface IImovelRepository
     /// Incrementa o contador de visualizações.
     /// </summary>
     Task IncrementarVisualizacoesAsync(int id);
+
+    /// <summary>
+    /// Incrementa o contador de leads (clique no WhatsApp).
+    /// </summary>
+    Task IncrementarLeadsAsync(int id);
 }

@@ -27,6 +27,8 @@ export interface Imovel {
   // Corretor
   corretor_email?: string
   whatsapp?: string
+  endereco?: string
+  leads?: number
 
   // Datas
   created_at?: string

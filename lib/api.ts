@@ -41,6 +41,8 @@ function mapImovel(d: any): Imovel {
     visualizacoes:  d.visualizacoes,
     corretor_email: d.corretorEmail ?? undefined,
     whatsapp:       d.whatsapp ?? undefined,
+    endereco:       d.endereco ?? undefined,
+    leads:          d.leads ?? 0,
     created_at:     d.criadoEm,
     updated_at:     d.atualizadoEm,
   }
@@ -64,17 +66,29 @@ export async function apiGetImoveis(params?: {
   if (params?.corretorEmail) url.searchParams.set("corretorEmail", params.corretorEmail)
   if (params?.ordenacao)     url.searchParams.set("ordenacao", params.ordenacao)
 
-  const res = await fetch(url.toString())
-  if (!res.ok) throw new Error("Erro ao carregar imóveis")
-  const data = await res.json()
-  return (data as any[]).map(mapImovel)
+  const controller = new AbortController()
+  const timeoutId  = setTimeout(() => controller.abort(), 8000)
+  try {
+    const res = await fetch(url.toString(), { signal: controller.signal })
+    if (!res.ok) throw new Error("Erro ao carregar imóveis")
+    const data = await res.json()
+    return (data as any[]).map(mapImovel)
+  } finally {
+    clearTimeout(timeoutId)
+  }
 }
 
 export async function apiGetImovelById(id: number): Promise<Imovel | null> {
-  const res = await fetch(`${API_URL}/api/imoveis/${id}`)
-  if (res.status === 404) return null
-  if (!res.ok) throw new Error("Erro ao carregar imóvel")
-  return mapImovel(await res.json())
+  const controller = new AbortController()
+  const timeoutId  = setTimeout(() => controller.abort(), 8000)
+  try {
+    const res = await fetch(`${API_URL}/api/imoveis/${id}`, { signal: controller.signal })
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error("Erro ao carregar imóvel")
+    return mapImovel(await res.json())
+  } finally {
+    clearTimeout(timeoutId)
+  }
 }
 
 export async function apiCriarImovel(dados: {
@@ -91,6 +105,7 @@ export async function apiCriarImovel(dados: {
   vagas:     number
   destaque:  boolean
   whatsapp:  string
+  endereco?: string
 }): Promise<Imovel> {
   const res = await fetch(`${API_URL}/api/imoveis`, {
     method:  "POST",
@@ -110,6 +125,7 @@ export async function apiCriarImovel(dados: {
       vagas:     dados.vagas,
       destaque:  dados.destaque,
       whatsapp:  dados.whatsapp || null,
+      endereco:  dados.endereco || null,
     }),
   })
   if (!res.ok) {
@@ -117,6 +133,14 @@ export async function apiCriarImovel(dados: {
     throw new Error(err || "Erro ao criar imóvel")
   }
   return mapImovel(await res.json())
+}
+
+export async function apiRegistrarLead(id: number): Promise<void> {
+  try {
+    await fetch(`${API_URL}/api/imoveis/${id}/leads`, { method: "POST" })
+  } catch {
+    // fire-and-forget — não bloqueia a navegação do usuário
+  }
 }
 
 export async function apiAtualizarImovel(
@@ -135,6 +159,7 @@ export async function apiAtualizarImovel(
     vagas?:     number
     destaque?:  boolean
     whatsapp?:  string
+    endereco?:  string
   }
 ): Promise<Imovel> {
   const body: any = { ...dados }

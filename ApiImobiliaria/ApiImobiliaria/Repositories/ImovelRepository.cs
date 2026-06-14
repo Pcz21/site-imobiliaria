@@ -84,10 +84,17 @@ public class ImovelRepository : IImovelRepository
 
     public async Task IncrementarVisualizacoesAsync(int id)
     {
-        // UPDATE direto no banco — evita carregar o objeto inteiro na memória
         await _db.Imoveis
             .Where(i => i.Id == id)
             .ExecuteUpdateAsync(s =>
                 s.SetProperty(i => i.Visualizacoes, i => i.Visualizacoes + 1));
+    }
+
+    public async Task IncrementarLeadsAsync(int id)
+    {
+        await _db.Imoveis
+            .Where(i => i.Id == id)
+            .ExecuteUpdateAsync(s =>
+                s.SetProperty(i => i.Leads, i => i.Leads + 1));
     }
 }
