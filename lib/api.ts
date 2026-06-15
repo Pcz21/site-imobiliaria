@@ -1,6 +1,20 @@
 import { Imovel } from "@/lib/data"
 
+// URL base para chamadas SERVER-SIDE (Next.js → .NET diretamente)
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5162"
+
+// Resolve o endpoint correto dependendo do contexto de execução:
+//   - Servidor (SSR/RSC): usa URL completa → Next.js chama .NET diretamente
+//   - Cliente (browser):  usa URL relativa → browser chama Next.js proxy
+//     que por sua vez chama o .NET — funciona em qualquer dispositivo
+//     porque o celular não precisa alcançar "localhost:5162"
+function buildUrl(path: string, qs?: Record<string, string>): string {
+  const base = typeof window === "undefined" ? API_URL : ""
+  const query = qs && Object.keys(qs).length > 0
+    ? "?" + new URLSearchParams(qs).toString()
+    : ""
+  return `${base}${path}${query}`
+}
 
 // ─── Auth helpers ─────────────────────────────────────────────────────────────
 
@@ -27,7 +41,7 @@ function mapImovel(d: any): Imovel {
     cidade:         d.cidade,
     preco:          Number(d.preco),
     descricao:      d.descricao ?? "",
-    tipo:           d.tipo as "venda" | "aluguel",
+    tipo:           (d.tipo as string)?.toLowerCase() as "venda" | "aluguel",
     imagem:         d.imagem ?? d.capa ?? undefined,
     capa:           d.capa ?? undefined,
     imagens:        d.imagens ?? [],
@@ -58,18 +72,19 @@ export async function apiGetImoveis(params?: {
   corretorEmail?: string
   ordenacao?: string
 }): Promise<Imovel[]> {
-  const url = new URL(`${API_URL}/api/imoveis`)
-  if (params?.tipo && params.tipo !== "todos") url.searchParams.set("tipo", params.tipo)
-  if (params?.busca)         url.searchParams.set("busca", params.busca)
-  if (params?.quartos)       url.searchParams.set("quartos", String(params.quartos))
-  if (params?.precoMax)      url.searchParams.set("precoMax", String(params.precoMax))
-  if (params?.corretorEmail) url.searchParams.set("corretorEmail", params.corretorEmail)
-  if (params?.ordenacao)     url.searchParams.set("ordenacao", params.ordenacao)
+  const qs: Record<string, string> = {}
+  if (params?.tipo && params.tipo !== "todos") qs.tipo = params.tipo
+  if (params?.busca)         qs.busca = params.busca
+  if (params?.quartos)       qs.quartos = String(params.quartos)
+  if (params?.precoMax)      qs.precoMax = String(params.precoMax)
+  if (params?.corretorEmail) qs.corretorEmail = params.corretorEmail
+  if (params?.ordenacao)     qs.ordenacao = params.ordenacao
 
+  const url = buildUrl("/api/imoveis", qs)
   const controller = new AbortController()
   const timeoutId  = setTimeout(() => controller.abort(), 8000)
   try {
-    const res = await fetch(url.toString(), { signal: controller.signal })
+    const res = await fetch(url, { signal: controller.signal })
     if (!res.ok) throw new Error("Erro ao carregar imóveis")
     const data = await res.json()
     return (data as any[]).map(mapImovel)
@@ -79,10 +94,11 @@ export async function apiGetImoveis(params?: {
 }
 
 export async function apiGetImovelById(id: number): Promise<Imovel | null> {
+  const url = buildUrl(`/api/imoveis/${id}`)
   const controller = new AbortController()
   const timeoutId  = setTimeout(() => controller.abort(), 8000)
   try {
-    const res = await fetch(`${API_URL}/api/imoveis/${id}`, { signal: controller.signal })
+    const res = await fetch(url, { signal: controller.signal })
     if (res.status === 404) return null
     if (!res.ok) throw new Error("Erro ao carregar imóvel")
     return mapImovel(await res.json())
@@ -139,7 +155,7 @@ export async function apiRegistrarLead(id: number): Promise<void> {
   try {
     await fetch(`${API_URL}/api/imoveis/${id}/leads`, { method: "POST" })
   } catch {
-    // fire-and-forget — não bloqueia a navegação do usuário
+    // fire-and-forget
   }
 }
 

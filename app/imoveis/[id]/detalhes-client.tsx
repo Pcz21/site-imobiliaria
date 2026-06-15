@@ -279,7 +279,7 @@ export default function ImovelDetalhesClient({ imovel }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           className="lg:hidden"
-          style={{ position: "fixed", bottom: 24, right: 20, zIndex: 50, display: "flex", alignItems: "center", gap: 8, padding: "14px 22px", borderRadius: 999, background: "#16a34a", color: "white", fontWeight: 700, fontSize: 15, textDecoration: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.5)" }}
+          style={{ position: "fixed", bottom: 80, right: 20, zIndex: 50, display: "flex", alignItems: "center", gap: 8, padding: "14px 22px", borderRadius: 999, background: "#16a34a", color: "white", fontWeight: 700, fontSize: 15, textDecoration: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.5)" }}
         >
           💬 WhatsApp
         </a>
