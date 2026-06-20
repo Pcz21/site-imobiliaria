@@ -18,3 +18,17 @@ node_modules
 # API — credenciais e segredos nunca devem ir para o git
 **/appsettings.json
 **/appsettings.Production.json
+# .NET
+**/bin/
+**/obj/
+
+# Uploads locais
+ApiImobiliaria/ApiImobiliaria/uploads/
+
+# Logs
+*.log
+
+# Ambiente
+.env
+.env.local
+.env.production
