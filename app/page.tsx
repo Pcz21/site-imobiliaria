@@ -12,14 +12,13 @@ export default function HomePage() {
         style={{ minHeight: "clamp(500px, 70vh, 90vh)" }}
       >
 
-        {/* FOTO DE FUNDO — contain mostra a imagem inteira sem cortar */}
+        {/* FOTO DE FUNDO */}
         <div
           className="absolute inset-0 bg-black"
           style={{
             backgroundImage: "url('/fundo.jpg')",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center center",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
           }}
         />
 

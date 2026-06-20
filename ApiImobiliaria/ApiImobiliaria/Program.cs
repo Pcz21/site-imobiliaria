@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using ApiImobiliaria.Data;
@@ -61,11 +62,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("Admin", policy =>
-        policy.RequireClaim("isAdmin", "true"));
-});
+builder.Services.AddAuthorization();
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
@@ -110,21 +107,18 @@ if (app.Environment.IsDevelopment())
         Results.Ok(new { hash = BCrypt.Net.BCrypt.HashPassword(senha, workFactor: 12) }));
 }
 
-// Aplica migrações pendentes automaticamente na inicialização
-var startupLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
-try
-{
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
-catch (Exception ex)
-{
-    startupLogger.LogError(ex, "Falha ao executar migrations. A API iniciará sem aplicá-las.");
-}
-
 app.UseCors("FrontendPolicy");
 app.UseHttpsRedirection();
+
+// Serve arquivos de /uploads/ sem autenticação (URLs públicas das imagens)
+var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
+Directory.CreateDirectory(uploadsPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath  = "/uploads",
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { apiGetImovelById } from "@/lib/api"
 import { formatarPreco } from "@/lib/data"
-import ImovelDetalhesClient from "./detalhes-client"
+import DetalhesLoader from "./detalhes-loader"
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -41,5 +41,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ImovelDetalhesPage({ params }: Props) {
   const { id } = await params
   const imovel = await apiGetImovelById(Number(id)).catch(() => null)
-  return <ImovelDetalhesClient imovel={imovel} />
+  return <DetalhesLoader imovel={imovel} />
 }

@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import {
   Code2,
-  LinkedinIcon,
+  Linkedin,
   MessageCircle,
   ExternalLink,
   Send,
@@ -84,7 +84,7 @@ export default function DesenvolvedorPage() {
             </Button>
             <Button asChild variant="outline" className="gap-2">
               <a href={LINKEDIN} target="_blank" rel="noopener noreferrer">
-                <LinkedinIcon className="h-4 w-4" />
+                <Linkedin className="h-4 w-4" />
                 LinkedIn
               </a>
             </Button>
@@ -176,7 +176,7 @@ export default function DesenvolvedorPage() {
                 className="flex items-center gap-4 rounded-2xl border bg-card p-5 hover:border-primary transition-colors group"
               >
                 <div className="rounded-xl bg-blue-500/10 p-3">
-                  <LinkedinIcon className="h-6 w-6 text-blue-500" />
+                  <Linkedin className="h-6 w-6 text-blue-500" />
                 </div>
                 <div>
                   <p className="font-medium group-hover:text-primary transition-colors">LinkedIn</p>

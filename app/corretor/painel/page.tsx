@@ -29,7 +29,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PropertyCard } from "@/components/property-card"
-import { apiGetImoveis, apiDeletarImovel, isAdmin } from "@/lib/api"
+import { apiGetImoveis, apiDeletarImovel } from "@/lib/api"
 import type { Imovel } from "@/lib/data"
 
 export default function PainelCorretorPage() {
@@ -39,7 +39,6 @@ export default function PainelCorretorPage() {
   const [corretor, setCorretor] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [removendoId, setRemovendoId] = useState<number | string | null>(null)
-  const [ehAdmin, setEhAdmin] = useState<boolean | null>(null)
 
   useEffect(() => {
     async function iniciar() {
@@ -71,7 +70,6 @@ export default function PainelCorretorPage() {
         return
       }
 
-      setEhAdmin(isAdmin())
       await carregarImoveis(emailCorretor)
     }
     iniciar()
@@ -210,18 +208,9 @@ export default function PainelCorretorPage() {
               <div className="rounded-xl bg-amber-500/10 p-4">
                 <TrendingUp className="h-6 w-6 text-amber-500" />
               </div>
-              <div className="min-w-0">
+              <div>
                 <p className="text-sm text-muted-foreground">Conta</p>
                 <p className="line-clamp-1 font-semibold">{corretor?.email}</p>
-                {ehAdmin !== null && (
-                  <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                    ehAdmin
-                      ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
-                      : "bg-muted text-muted-foreground"
-                  }`}>
-                    {ehAdmin ? "Administrador" : "Corretor"}
-                  </span>
-                )}
               </div>
             </CardContent>
           </Card>

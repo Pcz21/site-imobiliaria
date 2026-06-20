@@ -113,12 +113,10 @@ public class ImoveisController : ControllerBase
 
     /// <summary>
     /// Atualiza parcialmente um imóvel (apenas os campos enviados).
-    /// Corretores comuns só podem editar imóveis próprios; admins podem editar qualquer um.
     /// </summary>
     [Authorize]
     [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(ImovelDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ImovelDto>> Update(int id, [FromBody] AtualizarImovelDto dto)
@@ -130,12 +128,6 @@ public class ImoveisController : ControllerBase
 
         if (imovel is null)
             return NotFound(new { mensagem = "Imóvel não encontrado." });
-
-        var emailUser = User.FindFirstValue(ClaimTypes.Email) ?? "";
-        var ehAdmin   = User.FindFirstValue("isAdmin") == "true";
-
-        if (!ehAdmin && !string.Equals(imovel.CorretorEmail, emailUser, StringComparison.OrdinalIgnoreCase))
-            return StatusCode(403, new { mensagem = "Você só pode editar seus próprios imóveis." });
 
         if (dto.Titulo     is not null) imovel.Titulo     = dto.Titulo;
         if (dto.Cidade     is not null) imovel.Cidade     = dto.Cidade;
@@ -166,12 +158,10 @@ public class ImoveisController : ControllerBase
 
     /// <summary>
     /// Remove um imóvel (soft delete — marca como inativo).
-    /// Corretores comuns só podem remover imóveis próprios; admins podem remover qualquer um.
     /// </summary>
     [Authorize]
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
@@ -179,12 +169,6 @@ public class ImoveisController : ControllerBase
 
         if (imovel is null)
             return NotFound(new { mensagem = "Imóvel não encontrado." });
-
-        var emailUser = User.FindFirstValue(ClaimTypes.Email) ?? "";
-        var ehAdmin   = User.FindFirstValue("isAdmin") == "true";
-
-        if (!ehAdmin && !string.Equals(imovel.CorretorEmail, emailUser, StringComparison.OrdinalIgnoreCase))
-            return StatusCode(403, new { mensagem = "Você só pode remover seus próprios imóveis." });
 
         await _repo.RemoverAsync(imovel);
         return NoContent();
