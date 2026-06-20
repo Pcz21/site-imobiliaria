@@ -29,7 +29,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PropertyCard } from "@/components/property-card"
-import { apiGetImoveis, apiDeletarImovel } from "@/lib/api"
+import { apiGetImoveis, apiDeletarImovel, isAdmin } from "@/lib/api"
 import type { Imovel } from "@/lib/data"
 
 export default function PainelCorretorPage() {
@@ -39,17 +39,40 @@ export default function PainelCorretorPage() {
   const [corretor, setCorretor] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [removendoId, setRemovendoId] = useState<number | string | null>(null)
+  const [ehAdmin, setEhAdmin] = useState<boolean | null>(null)
 
   useEffect(() => {
     async function iniciar() {
-      const dados = localStorage.getItem("corretorLogado")
-      if (!dados) {
+      const allCookies = document.cookie
+      const tokenMatch = allCookies.match(/(?:^|;\s*)token=([^;]+)/)
+      const emailMatch = allCookies.match(/(?:^|;\s*)corretor_email=([^;]+)/)
+
+      let emailCorretor = ""
+
+      if (emailMatch) {
+        const bruto = emailMatch[1]
+        emailCorretor = (() => { try { return decodeURIComponent(bruto) } catch { return bruto } })()
+        setCorretor({ email: emailCorretor })
+      }
+
+      if (!emailCorretor) {
+        try {
+          const dados = localStorage.getItem("corretorLogado")
+          if (dados) {
+            const user = JSON.parse(dados)
+            emailCorretor = user.email || ""
+            setCorretor(user)
+          }
+        } catch {}
+      }
+
+      if (!emailCorretor && !tokenMatch) {
         window.location.href = "/corretor/login"
         return
       }
-      const user = JSON.parse(dados)
-      setCorretor(user)
-      await carregarImoveis(user.email)
+
+      setEhAdmin(isAdmin())
+      await carregarImoveis(emailCorretor)
     }
     iniciar()
   }, [])
@@ -59,8 +82,7 @@ export default function PainelCorretorPage() {
     try {
       const data = await apiGetImoveis({ corretorEmail: email })
       setMeusImoveis(data)
-    } catch (err) {
-      console.error(err)
+    } catch {
       setMeusImoveis([])
     } finally {
       setLoading(false)
@@ -69,7 +91,6 @@ export default function PainelCorretorPage() {
 
   async function removerImovel(id: number | string) {
     if (!confirm("Deseja realmente remover este imóvel?")) return
-
     try {
       setRemovendoId(id)
       await apiDeletarImovel(Number(id))
@@ -82,9 +103,9 @@ export default function PainelCorretorPage() {
   }
 
   function logout() {
-    localStorage.removeItem("corretorLogado")
-    localStorage.removeItem("token")
     document.cookie = "token=; path=/; max-age=0"
+    document.cookie = "corretor_email=; path=/; max-age=0"
+    try { localStorage.removeItem("corretorLogado"); localStorage.removeItem("token") } catch {}
     router.replace("/")
   }
 
@@ -189,9 +210,18 @@ export default function PainelCorretorPage() {
               <div className="rounded-xl bg-amber-500/10 p-4">
                 <TrendingUp className="h-6 w-6 text-amber-500" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Conta</p>
                 <p className="line-clamp-1 font-semibold">{corretor?.email}</p>
+                {ehAdmin !== null && (
+                  <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                    ehAdmin
+                      ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {ehAdmin ? "Administrador" : "Corretor"}
+                  </span>
+                )}
               </div>
             </CardContent>
           </Card>

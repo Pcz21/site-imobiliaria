@@ -9,6 +9,17 @@ export function getToken(): string | null {
   return localStorage.getItem("token")
 }
 
+export function isAdmin(): boolean {
+  const token = getToken()
+  if (!token) return false
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]))
+    return payload.isAdmin === "true"
+  } catch {
+    return false
+  }
+}
+
 function authHeaders(auth = false): HeadersInit {
   const h: Record<string, string> = { "Content-Type": "application/json" }
   if (auth) {

@@ -20,7 +20,10 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({ token, email })
 
-    // Define o cookie via Set-Cookie header (mais confiável que document.cookie)
+    // Secure só em HTTPS — evita cookie ignorado em mobile via HTTP local/LAN
+    const proto = request.headers.get("x-forwarded-proto") ?? ""
+    const isHttps = proto === "https" || request.url.startsWith("https://")
+
     response.cookies.set({
       name: "token",
       value: token,
@@ -28,7 +31,7 @@ export async function POST(request: NextRequest) {
       maxAge: 24 * 60 * 60,
       sameSite: "lax",
       httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
+      secure: isHttps,
     })
 
     return response

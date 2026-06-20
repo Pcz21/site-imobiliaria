@@ -9,7 +9,8 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<Imovel> Imoveis { get; set; }
+    public DbSet<Imovel>   Imoveis    { get; set; }
+    public DbSet<Corretor> Corretores { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,6 +24,17 @@ public class AppDbContext : DbContext
             v => v.Aggregate(0, (acc, s) => HashCode.Combine(acc, s.GetHashCode())),
             v => v.ToList()
         );
+
+        modelBuilder.Entity<Corretor>(entity =>
+        {
+            entity.ToTable("Corretores");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.SenhaHash).IsRequired();
+            entity.Property(e => e.IsAdmin).HasDefaultValue(false);
+            entity.Property(e => e.EmailVerificado).HasDefaultValue(true);
+        });
 
         modelBuilder.Entity<Imovel>(entity =>
         {

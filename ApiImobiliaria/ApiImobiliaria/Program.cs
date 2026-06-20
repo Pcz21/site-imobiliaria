@@ -61,7 +61,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy =>
+        policy.RequireClaim("isAdmin", "true"));
+});
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
@@ -104,6 +108,19 @@ if (app.Environment.IsDevelopment())
     // Nunca estará disponível em produção (apenas quando ASPNETCORE_ENVIRONMENT=Development).
     app.MapGet("/api/auth/gerar-hash", (string senha) =>
         Results.Ok(new { hash = BCrypt.Net.BCrypt.HashPassword(senha, workFactor: 12) }));
+}
+
+// Aplica migrações pendentes automaticamente na inicialização
+var startupLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+catch (Exception ex)
+{
+    startupLogger.LogError(ex, "Falha ao executar migrations. A API iniciará sem aplicá-las.");
 }
 
 app.UseCors("FrontendPolicy");

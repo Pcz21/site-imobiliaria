@@ -124,11 +124,21 @@ export function Footer() {
         </div>
 
         {/* COPYRIGHT */}
-        <div className="mt-8 border-t border-border pt-8 text-center">
+        <div className="mt-8 border-t border-border pt-8 text-center space-y-1">
 
           <p className="text-sm text-muted-foreground">
             © 2026 Fabiju Imóveis.
             Todos os direitos reservados.
+          </p>
+
+          <p className="text-xs text-muted-foreground">
+            Desenvolvido por{" "}
+            <Link
+              href="/desenvolvedor"
+              className="text-primary hover:underline"
+            >
+              Paulo Cézar
+            </Link>
           </p>
 
         </div>
