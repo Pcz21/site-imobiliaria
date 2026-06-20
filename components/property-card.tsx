@@ -22,16 +22,31 @@ export function PropertyCard({ imovel }: PropertyCardProps) {
     } catch {}
   }, [imovel.id])
 
-  function toggleFavorito(e: React.MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation()
+  function doToggleFavorito() {
+    console.log("[FAVORITO] clique detectado — id:", imovel.id)
     try {
       const ids: string[] = JSON.parse(localStorage.getItem("favoritos") || "[]")
+      console.log("[FAVORITO] localStorage OK — ids atuais:", ids)
       const id = String(imovel.id)
       const novos = ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id]
       localStorage.setItem("favoritos", JSON.stringify(novos))
+      console.log("[FAVORITO] salvo — favorito agora:", !ids.includes(id))
       setFavorito(v => !v)
-    } catch {}
+    } catch (err) {
+      console.error("[FAVORITO] ERRO no localStorage:", err)
+    }
+  }
+
+  function handleFavoritoClick(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    doToggleFavorito()
+  }
+
+  function handleFavoritoTouch(e: React.TouchEvent) {
+    e.stopPropagation()
+    e.preventDefault() // impede o click sintético de disparar em seguida
+    doToggleFavorito()
   }
 
   const mensagem = `Olá, tenho interesse no imóvel: ${imovel.titulo}`
@@ -81,7 +96,8 @@ export function PropertyCard({ imovel }: PropertyCardProps) {
         {/* FAVORITO */}
         <button
           type="button"
-          onClick={toggleFavorito}
+          onClick={handleFavoritoClick}
+          onTouchEnd={handleFavoritoTouch}
           className="absolute right-3 bottom-3 z-20 flex h-9 w-9 items-center justify-center rounded-full shadow-lg transition-transform active:scale-90"
           style={{
             background: favorito ? "#ef4444" : "rgba(255,255,255,0.9)",

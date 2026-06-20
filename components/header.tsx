@@ -15,13 +15,14 @@ export function Header() {
 
   useEffect(() => {
     if (!mounted) return
-    setLogado(!!localStorage.getItem("corretorLogado"))
+    // Cookie é a fonte de verdade — funciona com server action e login legado
+    setLogado(document.cookie.includes("token="))
   }, [mounted, pathname])
 
   function logout() {
-    localStorage.removeItem("corretorLogado")
-    localStorage.removeItem("token")
     document.cookie = "token=; path=/; max-age=0"
+    document.cookie = "corretor_email=; path=/; max-age=0"
+    try { localStorage.removeItem("corretorLogado"); localStorage.removeItem("token") } catch {}
     window.location.href = "/"
   }
 
@@ -30,15 +31,11 @@ export function Header() {
       {/* ── HEADER DESKTOP ── */}
       <header className="sticky top-0 z-50 w-full border-b border-border">
 
-        {/* Camada visual com blur */}
+        {/* Camada visual — blur removido temporariamente para teste de eventos iOS */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-background/95"
-          style={{
-            WebkitBackdropFilter: "blur(10px)",
-            backdropFilter: "blur(10px)",
-            pointerEvents: "none",
-          }}
+          className="absolute inset-0 bg-background"
+          style={{ pointerEvents: "none" }}
         />
 
         <div className="relative container mx-auto flex h-16 items-center justify-between px-4">

@@ -42,14 +42,35 @@ export default function PainelCorretorPage() {
 
   useEffect(() => {
     async function iniciar() {
-      const dados = localStorage.getItem("corretorLogado")
-      if (!dados) {
+      const allCookies = document.cookie
+      const tokenMatch = allCookies.match(/(?:^|;\s*)token=([^;]+)/)
+      const emailMatch = allCookies.match(/(?:^|;\s*)corretor_email=([^;]+)/)
+
+      let emailCorretor = ""
+
+      if (emailMatch) {
+        const bruto = emailMatch[1]
+        emailCorretor = (() => { try { return decodeURIComponent(bruto) } catch { return bruto } })()
+        setCorretor({ email: emailCorretor })
+      }
+
+      if (!emailCorretor) {
+        try {
+          const dados = localStorage.getItem("corretorLogado")
+          if (dados) {
+            const user = JSON.parse(dados)
+            emailCorretor = user.email || ""
+            setCorretor(user)
+          }
+        } catch {}
+      }
+
+      if (!emailCorretor && !tokenMatch) {
         window.location.href = "/corretor/login"
         return
       }
-      const user = JSON.parse(dados)
-      setCorretor(user)
-      await carregarImoveis(user.email)
+
+      await carregarImoveis(emailCorretor)
     }
     iniciar()
   }, [])
@@ -59,8 +80,7 @@ export default function PainelCorretorPage() {
     try {
       const data = await apiGetImoveis({ corretorEmail: email })
       setMeusImoveis(data)
-    } catch (err) {
-      console.error(err)
+    } catch {
       setMeusImoveis([])
     } finally {
       setLoading(false)
@@ -69,7 +89,6 @@ export default function PainelCorretorPage() {
 
   async function removerImovel(id: number | string) {
     if (!confirm("Deseja realmente remover este imóvel?")) return
-
     try {
       setRemovendoId(id)
       await apiDeletarImovel(Number(id))
@@ -82,9 +101,9 @@ export default function PainelCorretorPage() {
   }
 
   function logout() {
-    localStorage.removeItem("corretorLogado")
-    localStorage.removeItem("token")
     document.cookie = "token=; path=/; max-age=0"
+    document.cookie = "corretor_email=; path=/; max-age=0"
+    try { localStorage.removeItem("corretorLogado"); localStorage.removeItem("token") } catch {}
     router.replace("/")
   }
 

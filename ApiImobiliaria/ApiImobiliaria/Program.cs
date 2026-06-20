@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using ApiImobiliaria.Data;
@@ -108,6 +109,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("FrontendPolicy");
 app.UseHttpsRedirection();
+
+// Serve arquivos de /uploads/ sem autenticação (URLs públicas das imagens)
+var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
+Directory.CreateDirectory(uploadsPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath  = "/uploads",
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

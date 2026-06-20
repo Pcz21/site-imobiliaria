@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: ["192.168.0.40"],
   images: {
     unoptimized: true,
     remotePatterns: [
