@@ -41,8 +41,8 @@
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -85,8 +85,9 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    /* overflow-x AQUI, não no body — body com overflow:hidden quebra position:fixed no iOS Safari */
-    overflow-x: hidden;
+    /* overflow-x: hidden REMOVIDO — em iOS Safari, html/body com overflow:hidden cria scroll
+       container que desloca a hit-area de elementos position:fixed (bottom nav, botão WhatsApp).
+       Visualmente ficam no lugar certo mas o toque registra numa posição errada → eventos falham. */
   }
   * {
     @apply border-border outline-ring/50;

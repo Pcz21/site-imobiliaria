@@ -13,7 +13,19 @@ import {
   MapPin,
   TrendingUp,
   Home,
+  MessageCircle,
+  BarChart2,
 } from "lucide-react"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Legend,
+} from "recharts"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PropertyCard } from "@/components/property-card"
@@ -30,14 +42,35 @@ export default function PainelCorretorPage() {
 
   useEffect(() => {
     async function iniciar() {
-      const dados = localStorage.getItem("corretorLogado")
-      if (!dados) {
-        router.replace("/corretor/login")
+      const allCookies = document.cookie
+      const tokenMatch = allCookies.match(/(?:^|;\s*)token=([^;]+)/)
+      const emailMatch = allCookies.match(/(?:^|;\s*)corretor_email=([^;]+)/)
+
+      let emailCorretor = ""
+
+      if (emailMatch) {
+        const bruto = emailMatch[1]
+        emailCorretor = (() => { try { return decodeURIComponent(bruto) } catch { return bruto } })()
+        setCorretor({ email: emailCorretor })
+      }
+
+      if (!emailCorretor) {
+        try {
+          const dados = localStorage.getItem("corretorLogado")
+          if (dados) {
+            const user = JSON.parse(dados)
+            emailCorretor = user.email || ""
+            setCorretor(user)
+          }
+        } catch {}
+      }
+
+      if (!emailCorretor && !tokenMatch) {
+        window.location.href = "/corretor/login"
         return
       }
-      const user = JSON.parse(dados)
-      setCorretor(user)
-      await carregarImoveis(user.email)
+
+      await carregarImoveis(emailCorretor)
     }
     iniciar()
   }, [])
@@ -47,8 +80,7 @@ export default function PainelCorretorPage() {
     try {
       const data = await apiGetImoveis({ corretorEmail: email })
       setMeusImoveis(data)
-    } catch (err) {
-      console.error(err)
+    } catch {
       setMeusImoveis([])
     } finally {
       setLoading(false)
@@ -57,7 +89,6 @@ export default function PainelCorretorPage() {
 
   async function removerImovel(id: number | string) {
     if (!confirm("Deseja realmente remover este imóvel?")) return
-
     try {
       setRemovendoId(id)
       await apiDeletarImovel(Number(id))
@@ -70,16 +101,24 @@ export default function PainelCorretorPage() {
   }
 
   function logout() {
-    localStorage.removeItem("corretorLogado")
-    localStorage.removeItem("token")
     document.cookie = "token=; path=/; max-age=0"
+    document.cookie = "corretor_email=; path=/; max-age=0"
+    try { localStorage.removeItem("corretorLogado"); localStorage.removeItem("token") } catch {}
     router.replace("/")
   }
 
-  const totalVisualizacoes = meusImoveis.reduce(
-    (total, imovel) => total + (imovel.visualizacoes || 0),
-    0
-  )
+  const totalVisualizacoes = meusImoveis.reduce((t, im) => t + (im.visualizacoes || 0), 0)
+  const totalLeads         = meusImoveis.reduce((t, im) => t + (im.leads || 0), 0)
+  const totalAtivos        = meusImoveis.filter((im) => im.ativo !== false).length
+
+  const dadosGrafico = meusImoveis
+    .filter((im) => im.ativo !== false)
+    .slice(0, 10)
+    .map((im) => ({
+      nome:  im.titulo.length > 18 ? im.titulo.slice(0, 18) + "…" : im.titulo,
+      views: im.visualizacoes || 0,
+      leads: im.leads || 0,
+    }))
 
   if (loading) {
     return (
@@ -106,15 +145,15 @@ export default function PainelCorretorPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link href="/corretor/publicar">
-              <Button className="gap-2">
+            <Button asChild className="gap-2">
+              <Link href="/corretor/publicar">
                 <Plus className="h-4 w-4" />
                 Novo imóvel
-              </Button>
-            </Link>
-            <Link href="/imoveis">
-              <Button variant="outline">Ver site</Button>
-            </Link>
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/imoveis">Ver site</Link>
+            </Button>
             <Button onClick={logout} variant="outline" className="gap-2">
               <LogOut className="h-4 w-4" />
               Sair
@@ -127,15 +166,15 @@ export default function PainelCorretorPage() {
       <div className="container mx-auto px-4 py-10">
 
         {/* CARDS KPI */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           <Card className="rounded-2xl">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="rounded-xl bg-primary/10 p-4">
                 <Home className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total de imóveis</p>
-                <p className="text-3xl font-bold">{meusImoveis.length}</p>
+                <p className="text-sm text-muted-foreground">Imóveis ativos</p>
+                <p className="text-3xl font-bold">{totalAtivos}</p>
               </div>
             </CardContent>
           </Card>
@@ -155,7 +194,19 @@ export default function PainelCorretorPage() {
           <Card className="rounded-2xl">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="rounded-xl bg-green-500/10 p-4">
-                <TrendingUp className="h-6 w-6 text-green-500" />
+                <MessageCircle className="h-6 w-6 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Leads (WhatsApp)</p>
+                <p className="text-3xl font-bold">{totalLeads}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl">
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="rounded-xl bg-amber-500/10 p-4">
+                <TrendingUp className="h-6 w-6 text-amber-500" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Conta</p>
@@ -164,6 +215,51 @@ export default function PainelCorretorPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* GRÁFICO DE DESEMPENHO */}
+        {dadosGrafico.length > 0 && (
+          <section className="mt-10">
+            <div className="mb-4 flex items-center gap-2">
+              <BarChart2 className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-bold">Desempenho dos imóveis</h2>
+            </div>
+            <Card className="rounded-2xl">
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={dadosGrafico}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 70 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis
+                      dataKey="nome"
+                      tick={{ fontSize: 11 }}
+                      angle={-35}
+                      textAnchor="end"
+                      interval={0}
+                    />
+                    <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                    <Tooltip
+                      formatter={(value, name) =>
+                        name === "views"
+                          ? [value, "Visualizações"]
+                          : [value, "Leads (WhatsApp)"]
+                      }
+                    />
+                    <Legend
+                      formatter={(value) =>
+                        value === "views" ? "Visualizações" : "Leads (WhatsApp)"
+                      }
+                      wrapperStyle={{ paddingTop: 16 }}
+                    />
+                    <Bar dataKey="views" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="leads" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         {/* LISTA */}
         <section className="mt-12">
@@ -182,10 +278,11 @@ export default function PainelCorretorPage() {
 
                   {/* Ações — sempre visíveis no mobile */}
                   <div className="absolute right-3 top-3 z-30 flex gap-2 opacity-100 md:opacity-0 md:transition-opacity md:group-hover:opacity-100">
-                    <Link href={`/corretor/editar/${imovel.id}`}>
-                      <button className="rounded-full bg-blue-500 p-2 text-white shadow-lg transition hover:scale-105 hover:bg-blue-600">
-                        <Pencil className="h-4 w-4" />
-                      </button>
+                    <Link
+                      href={`/corretor/editar/${imovel.id}`}
+                      className="rounded-full bg-blue-500 p-2 text-white shadow-lg transition hover:scale-105 hover:bg-blue-600 inline-flex items-center justify-center"
+                    >
+                      <Pencil className="h-4 w-4" style={{ pointerEvents: "none" }} />
                     </Link>
                     <button
                       onClick={() => removerImovel(imovel.id)}
@@ -200,6 +297,9 @@ export default function PainelCorretorPage() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <div className="rounded-full border px-3 py-1 text-xs">
                       👁️ {imovel.visualizacoes || 0} views
+                    </div>
+                    <div className="rounded-full border px-3 py-1 text-xs">
+                      📱 {imovel.leads || 0} leads
                     </div>
                     <div className="rounded-full border px-3 py-1 text-xs">
                       🖼️ {imovel.imagens?.length || 0} fotos
@@ -225,12 +325,12 @@ export default function PainelCorretorPage() {
                 <p className="mt-2 max-w-md text-muted-foreground">
                   Comece criando seu primeiro anúncio imobiliário.
                 </p>
-                <Link href="/corretor/publicar" className="mt-6">
-                  <Button className="gap-2">
+                <Button asChild className="mt-6 gap-2">
+                  <Link href="/corretor/publicar">
                     <Plus className="h-4 w-4" />
                     Publicar imóvel
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           )}

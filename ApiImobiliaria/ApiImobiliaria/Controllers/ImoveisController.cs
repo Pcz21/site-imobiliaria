@@ -96,10 +96,12 @@ public class ImoveisController : ControllerBase
             Destaque      = dto.Destaque,
             CorretorEmail = emailCorretor,
             Whatsapp      = dto.Whatsapp,
+            Endereco      = dto.Endereco,
             Imagens       = dto.Imagens,
             Videos        = dto.Videos,
             Ativo         = true,
             Visualizacoes = 0,
+            Leads         = 0,
             CriadoEm      = DateTime.UtcNow,
             AtualizadoEm  = DateTime.UtcNow,
         };
@@ -140,6 +142,7 @@ public class ImoveisController : ControllerBase
         if (dto.Destaque.HasValue)      imovel.Destaque   = dto.Destaque.Value;
         if (dto.Ativo.HasValue)         imovel.Ativo      = dto.Ativo.Value;
         if (dto.Whatsapp   is not null) imovel.Whatsapp   = dto.Whatsapp;
+        if (dto.Endereco   is not null) imovel.Endereco   = dto.Endereco;
         if (dto.Imagens    is not null)
         {
             imovel.Imagens = dto.Imagens;
@@ -191,9 +194,26 @@ public class ImoveisController : ControllerBase
         Visualizacoes = i.Visualizacoes,
         CorretorEmail = i.CorretorEmail,
         Whatsapp      = i.Whatsapp,
+        Endereco      = i.Endereco,
+        Leads         = i.Leads,
         Imagens       = i.Imagens,
         Videos        = i.Videos,
         CriadoEm      = i.CriadoEm,
         AtualizadoEm  = i.AtualizadoEm,
     };
+
+    /// <summary>
+    /// Registra um lead (clique no botão de WhatsApp) sem autenticação.
+    /// </summary>
+    [HttpPost("{id:int}/leads")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RegistrarLead(int id)
+    {
+        var imovel = await _repo.ObterPorIdAsync(id);
+        if (imovel is null || !imovel.Ativo)
+            return NotFound();
+        await _repo.IncrementarLeadsAsync(id);
+        return NoContent();
+    }
 }

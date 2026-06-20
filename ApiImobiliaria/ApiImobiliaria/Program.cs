@@ -1,11 +1,13 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using ApiImobiliaria.Data;
 using ApiImobiliaria.Interfaces;
 using ApiImobiliaria.Repositories;
+using ApiImobiliaria.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +39,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // ─── Repository Pattern ───────────────────────────────────────────────────────
 builder.Services.AddScoped<IImovelRepository, ImovelRepository>();
 
+// ─── Serviço de senha (BCrypt) ────────────────────────────────────────────────
+builder.Services.AddSingleton<IPasswordService, PasswordService>();
+
 // ─── JWT Authentication ───────────────────────────────────────────────────────
 var jwtConfig = builder.Configuration.GetSection("Jwt");
 var secretKey  = Encoding.UTF8.GetBytes(jwtConfig["SecretKey"]!);
@@ -64,14 +69,22 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy
-            .WithOrigins(
-                "http://localhost:3000",
-                "https://localhost:3000"
-                // Adicione o domínio de produção aqui futuramente
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        if (builder.Environment.IsDevelopment())
+        {
+            // Allow any origin in dev so mobile devices on the LAN can reach the API
+            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        }
+        else
+        {
+            policy
+                .WithOrigins(
+                    "http://localhost:3000",
+                    "https://localhost:3000"
+                    // Adicione o domínio de produção aqui antes do deploy
+                )
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
     });
 });
 
@@ -87,10 +100,25 @@ if (app.Environment.IsDevelopment())
                .WithTheme(ScalarTheme.DeepSpace)
                .WithDefaultHttpClient(ScalarTarget.JavaScript, ScalarClient.Fetch);
     });
+
+    // Endpoint para gerar hash BCrypt de uma senha — USE UMA VEZ para configurar SenhaHash.
+    // Nunca estará disponível em produção (apenas quando ASPNETCORE_ENVIRONMENT=Development).
+    app.MapGet("/api/auth/gerar-hash", (string senha) =>
+        Results.Ok(new { hash = BCrypt.Net.BCrypt.HashPassword(senha, workFactor: 12) }));
 }
 
 app.UseCors("FrontendPolicy");
 app.UseHttpsRedirection();
+
+// Serve arquivos de /uploads/ sem autenticação (URLs públicas das imagens)
+var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
+Directory.CreateDirectory(uploadsPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath  = "/uploads",
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

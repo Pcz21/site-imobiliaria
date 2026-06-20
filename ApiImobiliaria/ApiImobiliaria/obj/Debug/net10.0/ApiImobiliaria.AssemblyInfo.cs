@@ -10,10 +10,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("92e316e9-43aa-4129-8105-470c4a81158e")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("ApiImobiliaria")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3fbb8c59b822afa6600e8a785e9d3036fdfac2f3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+811e28891238000bb31b2fbb0059f369a455cce4")]
 [assembly: System.Reflection.AssemblyProductAttribute("ApiImobiliaria")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ApiImobiliaria")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

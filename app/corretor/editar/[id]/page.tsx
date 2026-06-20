@@ -27,6 +27,7 @@ export default function EditarImovelPage() {
     preco:     "",
     descricao: "",
     whatsapp:  "",
+    endereco:  "",
     tipo:      "venda",
     imagens:   [],
     videos:    [],
@@ -52,6 +53,7 @@ export default function EditarImovelPage() {
         preco:     String(imovel.preco),
         descricao: imovel.descricao,
         whatsapp:  imovel.whatsapp ?? "",
+        endereco:  imovel.endereco ?? "",
         tipo:      imovel.tipo,
         imagens:   imovel.imagens ?? (imovel.imagem ? [imovel.imagem] : []),
         videos:    imovel.videos ?? [],
@@ -171,6 +173,7 @@ export default function EditarImovelPage() {
         preco:     Number(formData.preco),
         descricao: formData.descricao,
         whatsapp:  formData.whatsapp,
+        endereco:  formData.endereco || undefined,
         tipo:      formData.tipo,
         quartos:   Number(formData.quartos) || 0,
         banheiros: Number(formData.banheiros) || 0,
@@ -327,6 +330,14 @@ export default function EditarImovelPage() {
               value={formData.whatsapp}
               onChange={handleChange}
               placeholder="WhatsApp"
+              className="w-full rounded-2xl border bg-card p-4"
+            />
+
+            <input
+              name="endereco"
+              value={formData.endereco}
+              onChange={handleChange}
+              placeholder="Endereço completo (ex: Rua das Flores, 123 - Bairro, Cidade)"
               className="w-full rounded-2xl border bg-card p-4"
             />
 

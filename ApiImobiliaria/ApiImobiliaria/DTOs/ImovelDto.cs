@@ -23,6 +23,8 @@ public class ImovelDto
     public int     Visualizacoes { get; set; }
     public string? CorretorEmail { get; set; }
     public string? Whatsapp      { get; set; }
+    public string? Endereco      { get; set; }
+    public int     Leads         { get; set; }
     public List<string> Imagens  { get; set; } = new();
     public List<string> Videos   { get; set; } = new();
     public DateTime CriadoEm     { get; set; }
@@ -74,6 +76,9 @@ public class CriarImovelDto
     [StringLength(30, ErrorMessage = "WhatsApp deve ter no máximo 30 caracteres.")]
     public string? Whatsapp  { get; set; }
 
+    [StringLength(500)]
+    public string? Endereco  { get; set; }
+
     public List<string> Imagens { get; set; } = new();
     public List<string> Videos  { get; set; } = new();
 }
@@ -115,6 +120,9 @@ public class AtualizarImovelDto
 
     [StringLength(30)]
     public string? Whatsapp  { get; set; }
+
+    [StringLength(500)]
+    public string? Endereco  { get; set; }
 
     public List<string>? Imagens { get; set; }
     public List<string>? Videos  { get; set; }

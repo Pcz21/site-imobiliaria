@@ -64,12 +64,19 @@ namespace ApiImobiliaria.Migrations
                     b.Property<bool>("Destaque")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Endereco")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Imagem")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Imagens")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Leads")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Preco")
                         .HasColumnType("decimal(18,2)");

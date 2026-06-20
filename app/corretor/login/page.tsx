@@ -1,98 +1,87 @@
-"use client"
+import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
+import { Building2 } from "lucide-react"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Building2, Eye, EyeOff } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { apiLogin } from "@/lib/api"
+type Props = { searchParams: Promise<{ erro?: string }> }
 
-export default function LoginCorretorPage() {
-  const router = useRouter()
+export default async function LoginCorretorPage({ searchParams }: Props) {
+  // Redireciona server-side se já estiver logado (sem round-trip de JavaScript)
+  const cookieStore = await cookies()
+  if (cookieStore.get("token")?.value) redirect("/corretor/painel")
 
-  const [email, setEmail] = useState("")
-  const [senha, setSenha] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    if (document.cookie.includes("token=")) {
-      router.replace("/corretor/painel")
-    }
-  }, [router])
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
-
-    try {
-      const { token, email: emailRetornado } = await apiLogin(email, senha)
-
-      // Guarda token no localStorage (para chamadas à API) e em cookie (para middleware)
-      localStorage.setItem("token", token)
-      localStorage.setItem("corretorLogado", JSON.stringify({ email: emailRetornado }))
-      const secure = window.location.protocol === "https:" ? "; Secure" : ""
-      document.cookie = `token=${token}; path=/; max-age=${24 * 60 * 60}; SameSite=Strict${secure}`
-
-      router.replace("/corretor/painel")
-    } catch {
-      setError("Email ou senha incorretos")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const { erro } = await searchParams
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
-          <Building2 className="mx-auto h-10 w-10" />
-          <h1 className="text-2xl font-bold">Área Administrativa</h1>
-        </CardHeader>
+    <div style={{ display: "flex", minHeight: "80vh", alignItems: "center", justifyContent: "center", padding: "48px 16px" }}>
+      <div style={{ width: "100%", maxWidth: 420, background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, padding: 32 }}>
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <Building2 style={{ margin: "0 auto 12px", width: 40, height: 40 }} />
+          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Área Administrativa</h1>
+        </div>
 
-            {error && (
-              <p className="text-sm text-red-500">{error}</p>
-            )}
+        <form action="/api/auth/login-redirect" method="POST" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded border p-2"
-              required
-            />
+          {erro === "credenciais" && (
+            <p style={{ color: "#ef4444", fontSize: 14, margin: 0 }}>Email ou senha incorretos</p>
+          )}
+          {erro === "conexao" && (
+            <p style={{ color: "#ef4444", fontSize: 14, margin: 0 }}>Erro ao conectar. Verifique sua conexão.</p>
+          )}
 
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Senha"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                className="w-full rounded border p-2 pr-10"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-2"
-              >
-                {showPassword ? <EyeOff /> : <Eye />}
-              </button>
-            </div>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            required
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              borderRadius: 8,
+              border: "1px solid var(--border)",
+              background: "var(--input)",
+              color: "var(--foreground)",
+              fontSize: 16,
+              boxSizing: "border-box",
+            }}
+          />
 
-            <Button className="w-full" type="submit" disabled={isLoading}>
-              {isLoading ? "Entrando..." : "Entrar"}
-            </Button>
+          <input
+            type="password"
+            name="senha"
+            placeholder="Senha"
+            required
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              borderRadius: 8,
+              border: "1px solid var(--border)",
+              background: "var(--input)",
+              color: "var(--foreground)",
+              fontSize: 16,
+              boxSizing: "border-box",
+            }}
+          />
 
-          </form>
-        </CardContent>
-      </Card>
+          <button
+            type="submit"
+            style={{
+              width: "100%",
+              padding: "11px 0",
+              borderRadius: 8,
+              background: "var(--primary)",
+              color: "var(--primary-foreground)",
+              fontWeight: 600,
+              fontSize: 15,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Entrar
+          </button>
+
+        </form>
+      </div>
     </div>
   )
 }
