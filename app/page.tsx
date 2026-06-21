@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ArrowRight, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AvaliacoesGoogle } from "@/components/avaliacoes-google"
 
 export default function HomePage() {
   return (
@@ -48,6 +49,9 @@ export default function HomePage() {
 
         </div>
       </section>
+
+      {/* AVALIAÇÕES GOOGLE */}
+      <AvaliacoesGoogle />
 
     </div>
   )
