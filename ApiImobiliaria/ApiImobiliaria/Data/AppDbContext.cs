@@ -11,6 +11,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Imovel> Imoveis { get; set; }
 
+    public DbSet<Lead> Leads { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -53,6 +55,26 @@ public class AppDbContext : DbContext
                     v => JsonSerializer.Deserialize<List<string>>(v, jsonOptions) ?? new List<string>()
                 )
                 .Metadata.SetValueComparer(listaStringComparer);
+        });
+
+        modelBuilder.Entity<Lead>(entity =>
+        {
+            entity.ToTable("Leads");
+
+            entity.HasKey(e => e.Id);
+
+            // Índices para buscas comuns no painel
+            entity.HasIndex(e => e.ImovelId);
+            entity.HasIndex(e => e.Whatsapp);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CriadoEm);
+
+            // Relacionamento opcional com Imóvel — preserva o lead mesmo se o
+            // imóvel for removido (FK fica nula em vez de apagar o lead).
+            entity.HasOne(e => e.Imovel)
+                .WithMany()
+                .HasForeignKey(e => e.ImovelId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

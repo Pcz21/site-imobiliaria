@@ -133,9 +133,11 @@ export async function apiCriarImovel(dados: {
   whatsapp:  string
   endereco?: string
 }): Promise<Imovel> {
-  const res = await fetch(`${API_URL}/api/imoveis`, {
+  // Rota proxy do Next (mesma origem) injeta o JWT do cookie HttpOnly como Bearer
+  const res = await fetch(`/api/imoveis`, {
     method:  "POST",
-    headers: authHeaders(true),
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       titulo:    dados.titulo,
       cidade:    dados.cidade,
@@ -193,9 +195,9 @@ export async function apiAtualizarImovel(
     body.imagem = dados.imagens[0] ?? null
   }
 
-  const res = await fetch(`${API_URL}/api/imoveis/${id}`, {
+  const res = await fetch(`/api/imoveis/${id}`, {
     method:  "PUT",
-    headers: authHeaders(true),
+    headers: { "Content-Type": "application/json" },
     body:    JSON.stringify(body),
   })
   if (!res.ok) {
@@ -206,26 +208,116 @@ export async function apiAtualizarImovel(
 }
 
 export async function apiDeletarImovel(id: number): Promise<void> {
-  const res = await fetch(`${API_URL}/api/imoveis/${id}`, {
+  const res = await fetch(`/api/imoveis/${id}`, {
     method:  "DELETE",
-    headers: authHeaders(true),
   })
   if (!res.ok && res.status !== 204) {
     throw new Error("Erro ao remover imóvel")
   }
 }
 
+// ─── Leads ──────────────────────────────────────────────────────────────────────
+
+export type TipoInteresse = "visitar" | "informacoes" | "negociar" | "financiamento"
+export type LeadStatus    = "novo" | "atendido" | "visita_marcada" | "fechado" | "arquivado"
+
+export interface Lead {
+  id: number
+  nome: string
+  whatsapp: string
+  mensagem?: string | null
+  tipoInteresse: string
+  origem: string
+  status: LeadStatus
+  imovelId?: number | null
+  imovelTitulo?: string | null
+  imovelCidade?: string | null
+  criadoEm: string
+  atualizadoEm?: string | null
+}
+
+export interface LeadsPagina {
+  itens: Lead[]
+  total: number
+  pagina: number
+  tamanhoPagina: number
+  totalNovos: number
+  totalAtendidos: number
+}
+
+// POST público — registra interesse em um imóvel.
+// Lança Error com a mensagem amigável do servidor em caso de falha (inclui anti-spam 429).
+export async function apiCriarLead(dados: {
+  nome: string
+  whatsapp: string
+  mensagem?: string
+  tipoInteresse: TipoInteresse
+  imovelId?: number
+  origem?: string
+}): Promise<{ id: number; mensagem: string }> {
+  const res = await fetch(`/api/leads`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      nome:          dados.nome,
+      whatsapp:      dados.whatsapp,
+      mensagem:      dados.mensagem || null,
+      tipoInteresse: dados.tipoInteresse,
+      imovelId:      dados.imovelId ?? null,
+      origem:        dados.origem || "detalhe_imovel",
+    }),
+  })
+
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error(data?.mensagem || "Não foi possível enviar seu contato. Tente novamente.")
+  }
+  return { id: data.id, mensagem: data.mensagem ?? "Interesse registrado com sucesso!" }
+}
+
+// GET protegido — lista leads (proxy injeta o JWT do cookie HttpOnly).
+export async function apiGetLeads(params?: {
+  pagina?: number
+  tamanho?: number
+  status?: LeadStatus
+  imovelId?: number
+}): Promise<LeadsPagina> {
+  const qs: Record<string, string> = {}
+  if (params?.pagina)   qs.pagina   = String(params.pagina)
+  if (params?.tamanho)  qs.tamanho  = String(params.tamanho)
+  if (params?.status)   qs.status   = params.status
+  if (params?.imovelId) qs.imovelId = String(params.imovelId)
+  const query = Object.keys(qs).length ? "?" + new URLSearchParams(qs).toString() : ""
+
+  const res = await fetch(`/api/leads${query}`, { credentials: "same-origin" })
+  if (!res.ok) throw new Error("Erro ao carregar leads")
+  return res.json()
+}
+
+// PATCH protegido — atualiza o status de um lead.
+export async function apiAtualizarStatusLead(id: number, status: LeadStatus): Promise<Lead> {
+  const res = await fetch(`/api/leads/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  })
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(err || "Erro ao atualizar status do lead")
+  }
+  return res.json()
+}
+
 // ─── Upload ───────────────────────────────────────────────────────────────────
 
 export async function apiUploadArquivo(file: File): Promise<string | null> {
-  const token = getToken()
   const formData = new FormData()
   formData.append("file", file)
 
   try {
-    const res = await fetch(`${API_URL}/api/uploads/imoveis`, {
+    // Rota proxy do Next injeta o JWT do cookie HttpOnly como Bearer
+    const res = await fetch(`/api/uploads/imoveis`, {
       method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
     })
 

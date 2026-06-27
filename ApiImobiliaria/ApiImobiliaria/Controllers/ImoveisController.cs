@@ -129,6 +129,12 @@ public class ImoveisController : ControllerBase
         if (imovel is null)
             return NotFound(new { mensagem = "Imóvel não encontrado." });
 
+        // Autorização: o corretor só pode alterar os próprios imóveis (anti-IDOR)
+        var emailCorretor = User.FindFirstValue(ClaimTypes.Email);
+        if (!string.IsNullOrEmpty(imovel.CorretorEmail) &&
+            !string.Equals(imovel.CorretorEmail, emailCorretor, StringComparison.OrdinalIgnoreCase))
+            return Forbid();
+
         if (dto.Titulo     is not null) imovel.Titulo     = dto.Titulo;
         if (dto.Cidade     is not null) imovel.Cidade     = dto.Cidade;
         if (dto.Preco.HasValue)         imovel.Preco      = dto.Preco.Value;
@@ -169,6 +175,12 @@ public class ImoveisController : ControllerBase
 
         if (imovel is null)
             return NotFound(new { mensagem = "Imóvel não encontrado." });
+
+        // Autorização: o corretor só pode remover os próprios imóveis (anti-IDOR)
+        var emailCorretor = User.FindFirstValue(ClaimTypes.Email);
+        if (!string.IsNullOrEmpty(imovel.CorretorEmail) &&
+            !string.Equals(imovel.CorretorEmail, emailCorretor, StringComparison.OrdinalIgnoreCase))
+            return Forbid();
 
         await _repo.RemoverAsync(imovel);
         return NoContent();

@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import { MapPin, Bed, Bath, Maximize, Images, Video, Heart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { type Imovel, formatarPreco } from "@/lib/data"
+import { type Imovel, formatarPreco, WHATSAPP_OFICIAL } from "@/lib/data"
 
 interface PropertyCardProps {
   imovel: Imovel
@@ -51,12 +51,12 @@ export function PropertyCard({ imovel }: PropertyCardProps) {
 
   const mensagem = `Olá, tenho interesse no imóvel: ${imovel.titulo}`
   const digits = (imovel.whatsapp || "").replace(/\D/g, "")
-  const phone = digits.length === 10 || digits.length === 11
-    ? `55${digits}`
-    : digits
-  const whatsappLink = phone
-    ? `https://wa.me/${phone}?text=${encodeURIComponent(mensagem)}`
-    : null
+  // Número do imóvel quando válido; senão, número oficial da Fabiju
+  const phone =
+    digits.length === 10 || digits.length === 11 ? `55${digits}`
+    : digits.length >= 12 ? digits
+    : WHATSAPP_OFICIAL
+  const whatsappLink = `https://wa.me/${phone}?text=${encodeURIComponent(mensagem)}`
 
   const imagemPrincipal =
     imovel.imagens?.[0] ||
@@ -64,7 +64,7 @@ export function PropertyCard({ imovel }: PropertyCardProps) {
     "/placeholder-property-1.jpg"
 
   return (
-    <Card className="group overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl">
+    <Card className="group overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-300 hover:border-gold/40 hover:shadow-lg">
 
       {/* IMAGEM */}
       <div className="relative aspect-[4/3] w-full overflow-hidden">
@@ -74,19 +74,19 @@ export function PropertyCard({ imovel }: PropertyCardProps) {
           alt={imovel.titulo}
           fill
           unoptimized
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />
 
         {/* OVERLAY */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
 
         {/* TIPO */}
         <div className="absolute left-3 top-3 z-20">
           <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase shadow-lg ${
+            className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-md backdrop-blur-sm ${
               imovel.tipo === "venda"
-                ? "bg-primary text-primary-foreground"
-                : "bg-white text-black"
+                ? "bg-foreground/90 text-background"
+                : "bg-white/90 text-foreground"
             }`}
           >
             {imovel.tipo === "venda" ? "Venda" : "Aluguel"}
@@ -140,11 +140,11 @@ export function PropertyCard({ imovel }: PropertyCardProps) {
       <CardContent className="space-y-4 p-5">
 
         <div>
-          <h3 className="line-clamp-1 text-lg font-bold text-foreground">
+          <h3 className="line-clamp-1 text-lg font-semibold tracking-tight text-foreground">
             {imovel.titulo}
           </h3>
-          <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="h-4 w-4 shrink-0 text-primary" />
+          <div className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4 shrink-0 text-gold" />
             <span className="line-clamp-1">{imovel.cidade}</span>
           </div>
         </div>
@@ -174,7 +174,7 @@ export function PropertyCard({ imovel }: PropertyCardProps) {
         )}
 
         {/* PREÇO */}
-        <p className="text-2xl font-bold text-primary">
+        <p className="font-serif text-2xl font-semibold tracking-tight text-foreground">
           {formatarPreco(imovel.preco, imovel.tipo)}
         </p>
 

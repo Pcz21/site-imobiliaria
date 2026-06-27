@@ -36,13 +36,21 @@ export async function POST(request: NextRequest) {
     // Set-Cookie direto, sem encodeURIComponent: @ permanece @ no cookie
     // Assim document.cookie retorna spaulo456.com@gmail.com sem precisar de decode
     const maxAge = 24 * 60 * 60
+
+    // Secure só em HTTPS (produção). Em HTTP local/LAN, Secure faria o navegador
+    // rejeitar o cookie — manter condicional preserva o login mobile.
+    const proto = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "")
+    const secureFlag = proto === "https" ? "; Secure" : ""
+
+    // token: HttpOnly — inacessível via document.cookie (proteção contra XSS)
     response.headers.append(
       "Set-Cookie",
-      `token=${token}; Path=/; Max-Age=${maxAge}; SameSite=Lax`,
+      `token=${token}; Path=/; Max-Age=${maxAge}; SameSite=Lax; HttpOnly${secureFlag}`,
     )
+    // corretor_email: legível (não é segredo) — sinaliza sessão ativa para a UI
     response.headers.append(
       "Set-Cookie",
-      `corretor_email=${emailRetornado}; Path=/; Max-Age=${maxAge}; SameSite=Lax`,
+      `corretor_email=${emailRetornado}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secureFlag}`,
     )
     return response
   } catch {

@@ -26,15 +26,22 @@ export default function ImoveisClient({ initialImoveis, filtros, apiDown }: Prop
     <div className="min-h-screen bg-background">
 
       {/* HERO */}
-      <section className="border-b bg-card py-14">
+      <section className="border-b bg-card py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
+          <div className="max-w-3xl fade-in-up">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="h-px w-8 bg-gold/70" />
+              <span className="tracking-luxe text-xs font-medium uppercase text-gold">
+                Imóveis disponíveis
+              </span>
+            </div>
+            <h1 className="text-4xl font-medium tracking-tight md:text-5xl">
               Encontre seu{" "}
-              <span className="text-primary">imóvel ideal</span>
+              <span className="italic text-gold">imóvel ideal</span>
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Explore imóveis modernos, casas, apartamentos e oportunidades exclusivas.
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">
+              Explore casas, apartamentos e oportunidades exclusivas com o
+              atendimento próximo e transparente da Fabiju.
             </p>
           </div>
         </div>
@@ -134,7 +141,7 @@ export default function ImoveisClient({ initialImoveis, filtros, apiDown }: Prop
               </a>
             </div>
           ) : initialImoveis.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {initialImoveis.map((imovel) => (
                 <PropertyCard key={imovel.id} imovel={imovel} />
               ))}

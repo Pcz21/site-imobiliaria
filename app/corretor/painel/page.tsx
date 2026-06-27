@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import {
   Plus,
   FileText,
@@ -15,6 +14,7 @@ import {
   Home,
   MessageCircle,
   BarChart2,
+  Users,
 } from "lucide-react"
 import {
   BarChart,
@@ -33,8 +33,6 @@ import { apiGetImoveis, apiDeletarImovel } from "@/lib/api"
 import type { Imovel } from "@/lib/data"
 
 export default function PainelCorretorPage() {
-  const router = useRouter()
-
   const [meusImoveis, setMeusImoveis] = useState<Imovel[]>([])
   const [corretor, setCorretor] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -101,10 +99,9 @@ export default function PainelCorretorPage() {
   }
 
   function logout() {
-    document.cookie = "token=; path=/; max-age=0"
-    document.cookie = "corretor_email=; path=/; max-age=0"
     try { localStorage.removeItem("corretorLogado"); localStorage.removeItem("token") } catch {}
-    router.replace("/")
+    // O token é HttpOnly — só o servidor consegue apagá-lo
+    window.location.href = "/api/auth/logout"
   }
 
   const totalVisualizacoes = meusImoveis.reduce((t, im) => t + (im.visualizacoes || 0), 0)
@@ -138,8 +135,14 @@ export default function PainelCorretorPage() {
       <section className="border-b bg-card">
         <div className="container mx-auto flex flex-col gap-6 px-4 py-8 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">
-              Painel <span className="text-primary">Administrativo</span>
+            <div className="mb-2 flex items-center gap-2.5">
+              <span className="h-px w-6 bg-gold/70" />
+              <span className="tracking-luxe text-[11px] font-medium uppercase text-gold">
+                Área administrativa
+              </span>
+            </div>
+            <h1 className="text-3xl font-medium tracking-tight">
+              Painel <span className="text-gold">Administrativo</span>
             </h1>
             <p className="mt-2 text-muted-foreground">Gerencie seus imóveis publicados</p>
           </div>
@@ -149,6 +152,12 @@ export default function PainelCorretorPage() {
               <Link href="/corretor/publicar">
                 <Plus className="h-4 w-4" />
                 Novo imóvel
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/corretor/leads">
+                <Users className="h-4 w-4" />
+                Leads
               </Link>
             </Button>
             <Button asChild variant="outline">
@@ -167,7 +176,7 @@ export default function PainelCorretorPage() {
 
         {/* CARDS KPI */}
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          <Card className="rounded-2xl">
+          <Card className="rounded-xl">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="rounded-xl bg-primary/10 p-4">
                 <Home className="h-6 w-6 text-primary" />
@@ -179,7 +188,7 @@ export default function PainelCorretorPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl">
+          <Card className="rounded-xl">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="rounded-xl bg-blue-500/10 p-4">
                 <Eye className="h-6 w-6 text-blue-500" />
@@ -191,7 +200,7 @@ export default function PainelCorretorPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl">
+          <Card className="rounded-xl">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="rounded-xl bg-green-500/10 p-4">
                 <MessageCircle className="h-6 w-6 text-green-500" />
@@ -203,7 +212,7 @@ export default function PainelCorretorPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl">
+          <Card className="rounded-xl">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="rounded-xl bg-amber-500/10 p-4">
                 <TrendingUp className="h-6 w-6 text-amber-500" />
@@ -223,7 +232,7 @@ export default function PainelCorretorPage() {
               <BarChart2 className="h-5 w-5 text-primary" />
               <h2 className="text-xl font-bold">Desempenho dos imóveis</h2>
             </div>
-            <Card className="rounded-2xl">
+            <Card className="rounded-xl">
               <CardContent className="p-6">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart
@@ -318,7 +327,7 @@ export default function PainelCorretorPage() {
               ))}
             </div>
           ) : (
-            <Card className="rounded-3xl border-dashed">
+            <Card className="rounded-2xl border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-20 text-center">
                 <FileText className="mb-5 h-14 w-14 text-muted-foreground" />
                 <h3 className="text-2xl font-bold">Nenhum imóvel publicado</h3>

@@ -4,8 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Trash2, ImagePlus, Video, Loader2, Star, AlertCircle } from "lucide-react"
-import { supabase } from "@/lib/supabase"
-import { apiGetImovelById, apiAtualizarImovel } from "@/lib/api"
+import { apiGetImovelById, apiAtualizarImovel, apiUploadArquivo } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 
 const TAMANHO_MAX_VIDEO_MB = 50
@@ -99,34 +98,7 @@ export default function EditarImovelPage() {
     setNovosVideos(prev => [...prev, ...novos])
   }
 
-  function gerarNomeArquivo(file: File): string {
-    const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() ?? "bin"
-    const aleatorio = Math.random().toString(36).slice(2, 10)
-    return `${Date.now()}-${aleatorio}.${ext}`
-  }
-
-  async function uploadArquivo(file: File): Promise<string | null> {
-    const nome = gerarNomeArquivo(file)
-    const { error } = await supabase.storage
-      .from("imoveis")
-      .upload(nome, file, { upsert: false })
-
-    if (error) {
-      console.error(`[upload] Falha em "${file.name}":`, error.message)
-      return null
-    }
-
-    const { data } = supabase.storage.from("imoveis").getPublicUrl(nome)
-    return data.publicUrl
-  }
-
   async function salvar() {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      setErro("Sessão inválida. Faça logout e entre novamente.")
-      return
-    }
-
     try {
       setSalvando(true)
       setErro("")
@@ -137,7 +109,7 @@ export default function EditarImovelPage() {
       const falhasImagem: string[] = []
 
       for (const imagem of novasImagens) {
-        const url = await uploadArquivo(imagem)
+        const url = await apiUploadArquivo(imagem)
         if (url) {
           imagensAtualizadas.push(url)
         } else {
@@ -150,7 +122,7 @@ export default function EditarImovelPage() {
       const falhasVideo: string[] = []
 
       for (const video of novosVideos) {
-        const url = await uploadArquivo(video)
+        const url = await apiUploadArquivo(video)
         if (url) {
           videosAtualizados.push(url)
         } else {

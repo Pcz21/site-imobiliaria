@@ -4,11 +4,20 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, ImagePlus, Video, Loader2, Star, Trash2, AlertCircle } from "lucide-react"
-import { supabase } from "@/lib/supabase"
-import { apiCriarImovel } from "@/lib/api"
+import { apiCriarImovel, apiUploadArquivo } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 
 const TAMANHO_MAX_VIDEO_MB = 50
+
+function getCookieValue(name: string): string {
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`))
+  if (!match) return ""
+  try {
+    return decodeURIComponent(match[1])
+  } catch {
+    return match[1]
+  }
+}
 
 export default function PublicarImovelPage() {
   const router = useRouter()
@@ -35,14 +44,23 @@ export default function PublicarImovelPage() {
   })
 
   useEffect(() => {
-    const dados = localStorage.getItem("corretorLogado")
-    if (!dados) { router.replace("/corretor/login"); return }
-    setCorretor(JSON.parse(dados))
-
-    // Avisa se não há token JWT (sessão antiga — precisa fazer login novamente)
-    if (!localStorage.getItem("token")) {
-      setErro("Sua sessão expirou. Faça logout e entre novamente para publicar imóveis.")
+    const emailCorretor = getCookieValue("corretor_email")
+    if (emailCorretor) {
+      setCorretor({ email: emailCorretor })
+      return
     }
+
+    try {
+      const dados = localStorage.getItem("corretorLogado")
+      if (dados) {
+        setCorretor(JSON.parse(dados))
+        return
+      }
+    } catch {
+      localStorage.removeItem("corretorLogado")
+    }
+
+    router.replace("/corretor/login")
   }, [router])
 
   function handleChange(e: any) {
@@ -75,40 +93,12 @@ export default function PublicarImovelPage() {
     setVideosSelecionados((prev) => prev.filter((_, i) => i !== index))
   }
 
-  // Nome único garantido: timestamp + aleatório + extensão correta
-  function gerarNomeArquivo(file: File): string {
-    const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() ?? "bin"
-    const aleatorio = Math.random().toString(36).slice(2, 10)
-    return `${Date.now()}-${aleatorio}.${ext}`
-  }
-
-  async function uploadArquivo(file: File): Promise<string | null> {
-    const nome = gerarNomeArquivo(file)
-    const { error } = await supabase.storage
-      .from("imoveis")
-      .upload(nome, file, { upsert: false })
-
-    if (error) {
-      console.error(`[upload] Falha em "${file.name}":`, error.message)
-      return null
-    }
-
-    const { data } = supabase.storage.from("imoveis").getPublicUrl(nome)
-    return data.publicUrl
-  }
-
   async function publicar() {
     if (!formData.titulo || !formData.cidade || !formData.preco) {
       setErro("Preencha pelo menos título, cidade e preço.")
       return
     }
     if (!corretor) return
-
-    const token = localStorage.getItem("token")
-    if (!token) {
-      setErro("Sessão inválida. Faça logout e entre novamente.")
-      return
-    }
 
     try {
       setSalvando(true)
@@ -120,7 +110,7 @@ export default function PublicarImovelPage() {
       const falhasImagem: string[] = []
 
       for (const img of imagensSelecionadas) {
-        const url = await uploadArquivo(img)
+        const url = await apiUploadArquivo(img)
         if (url) {
           imagens.push(url)
         } else {
@@ -130,7 +120,7 @@ export default function PublicarImovelPage() {
 
       if (imagensSelecionadas.length > 0 && imagens.length === 0) {
         setErro(
-          "Nenhuma foto foi enviada. Verifique se o bucket 'imoveis' existe no Supabase Storage com política INSERT habilitada para a função anon."
+          "Nenhuma foto foi enviada. Verifique se o servidor da API está online e se sua sessão ainda é válida."
         )
         return
       }
@@ -140,7 +130,7 @@ export default function PublicarImovelPage() {
       const falhasVideo: string[] = []
 
       for (const vid of videosSelecionados) {
-        const url = await uploadArquivo(vid)
+        const url = await apiUploadArquivo(vid)
         if (url) {
           videos.push(url)
         } else {
@@ -153,7 +143,7 @@ export default function PublicarImovelPage() {
       if (falhasImagem.length > 0)
         avisosFinal.push(`Foto(s) não enviada(s): ${falhasImagem.join(", ")}`)
       if (falhasVideo.length > 0)
-        avisosFinal.push(`Vídeo(s) não enviado(s): ${falhasVideo.join(", ")} — verifique o tamanho (limite: ${TAMANHO_MAX_VIDEO_MB}MB) e as políticas do bucket.`)
+        avisosFinal.push(`Vídeo(s) não enviado(s): ${falhasVideo.join(", ")} — verifique o tamanho (limite: ${TAMANHO_MAX_VIDEO_MB}MB).`)
       if (avisosFinal.length > 0)
         setAvisos(avisosFinal)
 

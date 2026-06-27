@@ -15,6 +15,20 @@ node_modules
 .next/
 .DS_Store
 
+# Artefatos de build .NET
+**/bin/
+**/obj/
+*.user
+
 # API — credenciais e segredos nunca devem ir para o git
 **/appsettings.json
 **/appsettings.Production.json
+
+# Uploads em runtime do backend (dados de usuário, não código)
+ApiImobiliaria/ApiImobiliaria/uploads/
+ApiImobiliaria/ApiImobiliaria/_backup_uploads_teste/
+
+# Arquivos locais de ferramentas (Claude Code / agentes)
+.claude/
+.agents/
+skills-lock.json

@@ -19,8 +19,8 @@ export function Footer() {
                 <Building2 className="h-5 w-5 text-primary-foreground" />
               </div>
 
-              <span className="text-xl font-bold text-foreground">
-                Fabiju <span className="text-primary">Imóveis</span>
+              <span className="font-serif text-xl font-semibold tracking-tight text-foreground">
+                Fabiju <span className="text-gold">Imóveis</span>
               </span>
             </Link>
 

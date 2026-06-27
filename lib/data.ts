@@ -1,3 +1,7 @@
+// Número oficial único de WhatsApp da Fabiju Imóveis (formato internacional, só dígitos).
+// É o número da corretora exibido no rodapé / CRECI. Usado como padrão em todo o site.
+export const WHATSAPP_OFICIAL = "5511965009537"
+
 export interface Imovel {
   id: number | string
 

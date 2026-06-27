@@ -1,29 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { Home, Building2, Heart, User, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export function Header() {
-  const [logado, setLogado]   = useState(false)
-  const [mounted, setMounted] = useState(false)
+export function Header({ loggedIn }: { loggedIn: boolean }) {
   const pathname = usePathname()
 
-  useEffect(() => { setMounted(true) }, [])
-
-  useEffect(() => {
-    if (!mounted) return
-    // Cookie é a fonte de verdade — funciona com server action e login legado
-    setLogado(document.cookie.includes("token="))
-  }, [mounted, pathname])
-
   function logout() {
-    document.cookie = "token=; path=/; max-age=0"
-    document.cookie = "corretor_email=; path=/; max-age=0"
     try { localStorage.removeItem("corretorLogado"); localStorage.removeItem("token") } catch {}
-    window.location.href = "/"
+    // O token é HttpOnly — só o servidor consegue apagá-lo
+    window.location.href = "/api/auth/logout"
   }
 
   return (
@@ -41,12 +29,12 @@ export function Header() {
         <div className="relative container mx-auto flex h-16 items-center justify-between px-4">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
               <Building2 className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">
-              FABIJU <span className="text-primary">Imóveis</span>
+            <span className="font-serif text-xl font-semibold tracking-tight">
+              Fabiju <span className="text-gold">Imóveis</span>
             </span>
           </Link>
 
@@ -64,27 +52,25 @@ export function Header() {
               <Heart className="h-4 w-4" />
               Favoritos
             </Link>
-            {mounted && (
-              logado ? (
-                <div className="flex items-center gap-3">
-                  <Button asChild variant="outline" className="gap-2">
-                    <Link href="/corretor/painel">
-                      <LayoutDashboard className="h-4 w-4" />
-                      Painel
-                    </Link>
-                  </Button>
-                  <Button onClick={logout} variant="destructive" size="sm">
-                    Sair
-                  </Button>
-                </div>
-              ) : (
+            {loggedIn ? (
+              <div className="flex items-center gap-3">
                 <Button asChild variant="outline" className="gap-2">
-                  <Link href="/corretor/login">
-                    <User className="h-4 w-4" />
-                    Área administrativa
+                  <Link href="/corretor/painel">
+                    <LayoutDashboard className="h-4 w-4" />
+                    Painel
                   </Link>
                 </Button>
-              )
+                <Button onClick={logout} variant="destructive" size="sm">
+                  Sair
+                </Button>
+              </div>
+            ) : (
+              <Button asChild variant="outline" className="gap-2">
+                <Link href="/corretor/login">
+                  <User className="h-4 w-4" />
+                  Área administrativa
+                </Link>
+              </Button>
             )}
           </nav>
 

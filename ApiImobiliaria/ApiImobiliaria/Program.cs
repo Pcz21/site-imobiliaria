@@ -1,4 +1,7 @@
 using System.Text;
+using System.Threading.RateLimiting;
+using Amazon.Runtime;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -38,9 +41,44 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // ─── Repository Pattern ───────────────────────────────────────────────────────
 builder.Services.AddScoped<IImovelRepository, ImovelRepository>();
+builder.Services.AddScoped<ILeadRepository, LeadRepository>();
 
 // ─── Serviço de senha (BCrypt) ────────────────────────────────────────────────
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
+
+// ─── Storage de arquivos (Cloudflare R2 com fallback p/ disco local) ──────────
+// Se a seção "R2" estiver totalmente preenchida (Account/Access/Secret/Bucket),
+// usa o R2 (compatível com S3). Caso contrário, cai no disco local (dev).
+builder.Services.AddHttpContextAccessor();
+
+var r2 = builder.Configuration.GetSection("R2");
+var r2Configurado =
+    !string.IsNullOrWhiteSpace(r2["AccountId"]) &&
+    !string.IsNullOrWhiteSpace(r2["AccessKeyId"]) &&
+    !string.IsNullOrWhiteSpace(r2["SecretAccessKey"]) &&
+    !string.IsNullOrWhiteSpace(r2["Bucket"]);
+
+if (r2Configurado)
+{
+    builder.Services.AddSingleton<IAmazonS3>(_ =>
+    {
+        var cfg = new AmazonS3Config
+        {
+            ServiceURL           = $"https://{r2["AccountId"]}.r2.cloudflarestorage.com",
+            ForcePathStyle       = true,
+            AuthenticationRegion = "auto",
+            // O R2 rejeita os checksums automáticos (CRC) que o SDK v4 adiciona por padrão.
+            RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
+            ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
+        };
+        return new AmazonS3Client(r2["AccessKeyId"], r2["SecretAccessKey"], cfg);
+    });
+    builder.Services.AddScoped<IStorageService, R2StorageService>();
+}
+else
+{
+    builder.Services.AddScoped<IStorageService, LocalDiskStorageService>();
+}
 
 // ─── JWT Authentication ───────────────────────────────────────────────────────
 var jwtConfig = builder.Configuration.GetSection("Jwt");
@@ -64,6 +102,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// ─── Rate Limiting ──────────────────────────────────────────────────────────────
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Política "login": no máximo 5 tentativas por minuto por IP
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window      = TimeSpan.FromMinutes(1),
+            }));
+});
+
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
@@ -76,12 +130,15 @@ builder.Services.AddCors(options =>
         }
         else
         {
+            // Origens de produção via variável de ambiente / configuração.
+            // Ex.: CORS_ALLOWED_ORIGINS="https://fabijuimoveis.com.br,https://www.fabijuimoveis.com.br"
+            var allowedOrigins = (builder.Configuration["Cors:AllowedOrigins"]
+                ?? Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")
+                ?? "http://localhost:3000;https://localhost:3000")
+                .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
             policy
-                .WithOrigins(
-                    "http://localhost:3000",
-                    "https://localhost:3000"
-                    // Adicione o domínio de produção aqui antes do deploy
-                )
+                .WithOrigins(allowedOrigins)
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         }
@@ -106,6 +163,11 @@ if (app.Environment.IsDevelopment())
     app.MapGet("/api/auth/gerar-hash", (string senha) =>
         Results.Ok(new { hash = BCrypt.Net.BCrypt.HashPassword(senha, workFactor: 12) }));
 }
+else
+{
+    // HSTS — força HTTPS no navegador em produção
+    app.UseHsts();
+}
 
 app.UseCors("FrontendPolicy");
 app.UseHttpsRedirection();
@@ -121,6 +183,7 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 
 app.Run();
