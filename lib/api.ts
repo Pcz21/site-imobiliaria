@@ -1,7 +1,7 @@
 import { Imovel } from "@/lib/data"
 
 // URL base para chamadas SERVER-SIDE (Next.js → .NET diretamente)
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5162"
+const API_URL = process.env.API_URL ?? "http://localhost:5162"
 
 // Resolve o endpoint correto dependendo do contexto de execução:
 //   - Servidor (SSR/RSC): usa URL completa → Next.js chama .NET diretamente

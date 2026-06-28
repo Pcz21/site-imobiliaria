@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5162"
+// URL interna da API .NET (runtime — NÃO usar NEXT_PUBLIC_, que congela no build).
+const API_URL = process.env.API_URL ?? "http://localhost:5162"
 
 export async function POST(request: NextRequest) {
   try {
