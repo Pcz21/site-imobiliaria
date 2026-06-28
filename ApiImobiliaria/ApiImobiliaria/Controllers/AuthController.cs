@@ -36,20 +36,49 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var emailConfig = _config["Corretor:Email"];
-        var senhaHash   = _config["Corretor:SenhaHash"];
+        var credenciais = CarregarCredenciais();
 
-        // Credenciais não configuradas no servidor
-        if (string.IsNullOrEmpty(emailConfig) || string.IsNullOrEmpty(senhaHash))
+        // Nenhuma credencial configurada no servidor
+        if (credenciais.Count == 0)
             return StatusCode(503, new { mensagem = "Autenticação não configurada no servidor." });
 
+        // Procura a conta pelo email — várias contas suportadas (ex.: dev + corretora)
+        var conta = credenciais.FirstOrDefault(c =>
+            string.Equals(c.Email, dto.Email, StringComparison.OrdinalIgnoreCase));
+
         // Mesma mensagem para email e senha — evita enumeração de usuários
-        if (!string.Equals(dto.Email, emailConfig, StringComparison.OrdinalIgnoreCase) ||
-            !_passwordService.VerifyPassword(dto.Senha, senhaHash))
+        if (conta.Email is null || !_passwordService.VerifyPassword(dto.Senha, conta.SenhaHash))
             return Unauthorized(new { mensagem = "Email ou senha incorretos." });
 
-        var token = GerarToken(emailConfig);
-        return Ok(new { token, email = emailConfig });
+        var token = GerarToken(conta.Email);
+        return Ok(new { token, email = conta.Email });
+    }
+
+    /// <summary>
+    /// Carrega as credenciais aceitas a partir da configuração: a lista
+    /// "CredenciaisIniciais" (0..N) e, por compatibilidade, a conta única
+    /// "Corretor". Cada item tem Email + SenhaHash (BCrypt).
+    /// </summary>
+    private List<(string Email, string SenhaHash)> CarregarCredenciais()
+    {
+        var lista = new List<(string Email, string SenhaHash)>();
+
+        foreach (var item in _config.GetSection("CredenciaisIniciais").GetChildren())
+        {
+            var email = item["Email"];
+            var hash  = item["SenhaHash"];
+            if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(hash))
+                lista.Add((email, hash));
+        }
+
+        // Conta única (compatibilidade) — só adiciona se ainda não estiver na lista
+        var emailUnico = _config["Corretor:Email"];
+        var hashUnico  = _config["Corretor:SenhaHash"];
+        if (!string.IsNullOrEmpty(emailUnico) && !string.IsNullOrEmpty(hashUnico) &&
+            !lista.Any(c => string.Equals(c.Email, emailUnico, StringComparison.OrdinalIgnoreCase)))
+            lista.Add((emailUnico, hashUnico));
+
+        return lista;
     }
 
     private string GerarToken(string email)
