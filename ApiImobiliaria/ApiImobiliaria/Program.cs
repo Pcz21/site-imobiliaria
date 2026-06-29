@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Amazon.Runtime;
 using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
@@ -145,9 +146,21 @@ builder.Services.AddCors(options =>
     });
 });
 
+// ─── Forwarded Headers (API atrás do Nginx/Next) ──────────────────────────────
+// Faz a API enxergar o IP e o protocolo REAIS do cliente via X-Forwarded-For/Proto.
+// Sem isso, atrás do proxy todo request pareceria vir de 127.0.0.1 e o rate-limit
+// de login ficaria global. Loopback (127.0.0.1/::1) já é proxy confiável por padrão.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
+
 var app = builder.Build();
 
 // ─── Pipeline ─────────────────────────────────────────────────────────────────
+// Forwarded headers PRIMEIRO — para todo o restante já operar com IP/proto reais.
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

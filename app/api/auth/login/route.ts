@@ -7,9 +7,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    // Repassa IP/protocolo reais do cliente p/ a API (rate-limit de login por IP
+    // atrás do Nginx). Em dev, esses headers não existem → comportamento inalterado.
+    const headers: Record<string, string> = { "Content-Type": "application/json" }
+    const ip = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip")
+    if (ip) headers["X-Forwarded-For"] = ip
+    const xfProto = request.headers.get("x-forwarded-proto")
+    if (xfProto) headers["X-Forwarded-Proto"] = xfProto
+
     const res = await fetch(`${API_URL}/api/auth/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(body),
     })
 
