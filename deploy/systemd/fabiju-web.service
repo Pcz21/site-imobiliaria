@@ -1,0 +1,19 @@
+# /etc/systemd/system/fabiju-web.service
+# Next.js (next start) ouvindo só no localhost; o Nginx faz o proxy.
+# Ajuste o caminho do node se necessário:  which node
+[Unit]
+Description=Fabiju Imoveis Web (Next.js)
+After=network.target fabiju-api.service
+
+[Service]
+WorkingDirectory=/var/www/fabiju
+ExecStart=/usr/bin/node /var/www/fabiju/node_modules/next/dist/bin/next start -H 127.0.0.1 -p 3000
+Restart=always
+RestartSec=5
+SyslogIdentifier=fabiju-web
+User=www-data
+EnvironmentFile=/etc/fabiju/web.env
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

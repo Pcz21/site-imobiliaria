@@ -1,0 +1,18 @@
+# SQL Server 2022 para Linux (via Docker) — bind apenas no localhost da VPS.
+# Suba com:  MSSQL_SA_PASSWORD='SenhaForte!' docker compose -f docker-compose.sql.yml up -d
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: fabiju-sql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?defina MSSQL_SA_PASSWORD}"
+      MSSQL_PID: "Express"          # gratuito; troque por "Developer" se preferir
+    ports:
+      - "127.0.0.1:1433:1433"       # NUNCA expor 1433 publicamente
+    volumes:
+      - mssql-data:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  mssql-data:

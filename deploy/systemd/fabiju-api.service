@@ -1,0 +1,20 @@
+# /etc/systemd/system/fabiju-api.service
+# API .NET (Kestrel) ouvindo só no localhost; o Nginx faz o proxy.
+[Unit]
+Description=Fabiju Imoveis API (.NET)
+After=network.target docker.service
+
+[Service]
+WorkingDirectory=/var/www/fabiju-api
+ExecStart=/usr/bin/dotnet /var/www/fabiju-api/ApiImobiliaria.dll
+Restart=always
+RestartSec=5
+SyslogIdentifier=fabiju-api
+User=www-data
+EnvironmentFile=/etc/fabiju/api.env
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5162
+Environment=DOTNET_NOLOGO=1
+
+[Install]
+WantedBy=multi-user.target
