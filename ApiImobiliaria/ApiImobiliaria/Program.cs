@@ -83,7 +83,14 @@ else
 
 // ─── JWT Authentication ───────────────────────────────────────────────────────
 var jwtConfig = builder.Configuration.GetSection("Jwt");
-var secretKey  = Encoding.UTF8.GetBytes(jwtConfig["SecretKey"]!);
+var jwtSecret = jwtConfig["SecretKey"];
+// Falha clara (em vez de NullReferenceException) se o segredo não chegou ao
+// processo. O env var Jwt__SecretKey vem do EnvironmentFile do systemd em produção.
+if (string.IsNullOrWhiteSpace(jwtSecret))
+    throw new InvalidOperationException(
+        "Jwt:SecretKey nao configurado. Defina a variavel de ambiente Jwt__SecretKey " +
+        "(no EnvironmentFile do systemd, ex.: /etc/fabiju/api.env) antes de iniciar a API.");
+var secretKey = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
