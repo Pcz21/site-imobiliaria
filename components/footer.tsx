@@ -113,7 +113,7 @@ export function Footer() {
 
                 <MapPin className="h-4 w-4 text-primary" />
 
-                Itapevi, SP
+                Barueri, Osasco e região — SP
 
               </div>
 

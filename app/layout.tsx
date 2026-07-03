@@ -31,8 +31,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'Fabiju Imóveis - Encontre o Imóvel Ideal',
-  description: 'Plataforma imobiliária para compra, venda e aluguel de imóveis. Atendimento personalizado e profissional.',
+  title: 'Fabiju Imóveis - Imóveis em Barueri, Osasco e Região',
+  description: 'Compra, venda e aluguel de imóveis em Barueri, Osasco e região. Casas, apartamentos e terrenos com atendimento personalizado e profissional.',
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',

@@ -7,6 +7,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LeadForm } from "@/components/lead-form"
+import { apiRegistrarVisualizacao } from "@/lib/api"
 import { type Imovel, WHATSAPP_OFICIAL } from "@/lib/data"
 
 interface Props {
@@ -26,6 +27,17 @@ export default function ImovelDetalhesClient({ imovel }: Props) {
     try {
       const ids: string[] = JSON.parse(localStorage.getItem("favoritos") || "[]")
       setFavorito(ids.includes(String(imovel.id)))
+    } catch {}
+
+    // Visualização: conta apenas visitante SEM sessão de corretor, 1x por
+    // imóvel por navegador (dedupe via localStorage).
+    try {
+      const logado = /(?:^|;\s*)corretor_email=/.test(document.cookie)
+      const chave  = `visualizou_imovel_${imovel.id}`
+      if (!logado && !localStorage.getItem(chave)) {
+        localStorage.setItem(chave, "1")
+        apiRegistrarVisualizacao(Number(imovel.id))
+      }
     } catch {}
   }, [imovel])
 
@@ -50,7 +62,26 @@ export default function ImovelDetalhesClient({ imovel }: Props) {
   const msgWa   = encodeURIComponent(`Olá! Tenho interesse no imóvel: ${imovel.titulo}`)
   const waLink  = `https://wa.me/${phone}?text=${msgWa}`
 
-  const shareLink = `https://wa.me/?text=${encodeURIComponent(`${imovel.titulo} - Fabiju Imóveis: /imoveis/${imovel.id}`)}`
+  // Compartilhar: menu nativo do aparelho (qualquer app) com a URL completa.
+  // Fallback (desktop sem Web Share API): copia o link e avisa.
+  async function compartilhar() {
+    const url = window.location.href
+    const texto = `${imovel!.titulo} - Fabiju Imóveis`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: texto, text: texto, url })
+        return
+      }
+    } catch {
+      return // usuário cancelou o menu de compartilhar
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      alert("Link copiado! Cole onde quiser compartilhar.")
+    } catch {
+      window.open(`https://wa.me/?text=${encodeURIComponent(`${texto}: ${url}`)}`, "_blank")
+    }
+  }
 
   function toggleFavorito() {
     try {
@@ -88,15 +119,14 @@ export default function ImovelDetalhesClient({ imovel }: Props) {
               <Heart className={`h-4 w-4 ${favorito ? "fill-red-500" : ""}`} />
               {favorito ? "Salvo" : "Salvar"}
             </button>
-            <a
-              href={shareLink}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={compartilhar}
               className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <Share2 className="h-4 w-4" />
               Compartilhar
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -242,15 +272,14 @@ export default function ImovelDetalhesClient({ imovel }: Props) {
                   <Heart className={`h-4 w-4 ${favorito ? "fill-red-500" : ""}`} />
                   {favorito ? "Salvo" : "Salvar"}
                 </button>
-                <a
-                  href={shareLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={compartilhar}
                   className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <Share2 className="h-4 w-4" />
                   Compartilhar
-                </a>
+                </button>
               </div>
 
             </div>

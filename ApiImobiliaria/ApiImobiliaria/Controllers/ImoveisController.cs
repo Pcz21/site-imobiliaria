@@ -47,7 +47,8 @@ public class ImoveisController : ControllerBase
     }
 
     /// <summary>
-    /// Retorna os detalhes de um imóvel e incrementa as visualizações.
+    /// Retorna os detalhes de um imóvel (não altera contadores — a contagem
+    /// de visualizações é registrada pelo endpoint POST {id}/visualizacoes).
     /// </summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(ImovelDto), StatusCodes.Status200OK)]
@@ -59,9 +60,26 @@ public class ImoveisController : ControllerBase
         if (imovel is null || !imovel.Ativo)
             return NotFound(new { mensagem = "Imóvel não encontrado." });
 
-        await _repo.IncrementarVisualizacoesAsync(id);
-
         return Ok(ToDto(imovel));
+    }
+
+    /// <summary>
+    /// Registra uma visualização do imóvel. Chamado pela página pública de
+    /// detalhes (o front decide quando contar: visitante sem sessão, 1x por
+    /// imóvel por navegador). Editar/painel não passam mais por aqui.
+    /// </summary>
+    [HttpPost("{id:int}/visualizacoes")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RegistrarVisualizacao(int id)
+    {
+        var imovel = await _repo.ObterPorIdAsync(id);
+
+        if (imovel is null || !imovel.Ativo)
+            return NotFound(new { mensagem = "Imóvel não encontrado." });
+
+        await _repo.IncrementarVisualizacoesAsync(id);
+        return NoContent();
     }
 
     /// <summary>

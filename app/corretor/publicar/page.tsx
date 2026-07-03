@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, ImagePlus, Video, Loader2, Star, Trash2, AlertCircle } from "lucide-react"
-import { apiCriarImovel, apiUploadArquivo } from "@/lib/api"
+import { apiCriarImovel, apiUploadArquivos } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 
 const TAMANHO_MAX_VIDEO_MB = 50
@@ -105,18 +105,14 @@ export default function PublicarImovelPage() {
       setErro("")
       setAvisos([])
 
-      // ── Upload de imagens ──────────────────────────────────────────────────
+      // ── Upload de imagens (paralelo, pool de 3) ───────────────────────────
+      const urlsImagens = await apiUploadArquivos(imagensSelecionadas)
       const imagens: string[] = []
       const falhasImagem: string[] = []
-
-      for (const img of imagensSelecionadas) {
-        const url = await apiUploadArquivo(img)
-        if (url) {
-          imagens.push(url)
-        } else {
-          falhasImagem.push(img.name)
-        }
-      }
+      urlsImagens.forEach((url, i) => {
+        if (url) imagens.push(url)
+        else falhasImagem.push(imagensSelecionadas[i].name)
+      })
 
       if (imagensSelecionadas.length > 0 && imagens.length === 0) {
         setErro(
@@ -125,18 +121,14 @@ export default function PublicarImovelPage() {
         return
       }
 
-      // ── Upload de vídeos ───────────────────────────────────────────────────
+      // ── Upload de vídeos (paralelo, pool de 3) ────────────────────────────
+      const urlsVideos = await apiUploadArquivos(videosSelecionados)
       const videos: string[] = []
       const falhasVideo: string[] = []
-
-      for (const vid of videosSelecionados) {
-        const url = await apiUploadArquivo(vid)
-        if (url) {
-          videos.push(url)
-        } else {
-          falhasVideo.push(vid.name)
-        }
-      }
+      urlsVideos.forEach((url, i) => {
+        if (url) videos.push(url)
+        else falhasVideo.push(videosSelecionados[i].name)
+      })
 
       // Avisa sobre falhas parciais mas não impede o salvamento
       const avisosFinal: string[] = []

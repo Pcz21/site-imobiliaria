@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Trash2, ImagePlus, Video, Loader2, Star, AlertCircle } from "lucide-react"
-import { apiGetImovelById, apiAtualizarImovel, apiUploadArquivo } from "@/lib/api"
+import { apiGetImovelById, apiAtualizarImovel, apiUploadArquivos } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 
 const TAMANHO_MAX_VIDEO_MB = 50
@@ -104,31 +104,23 @@ export default function EditarImovelPage() {
       setErro("")
       setAvisos([])
 
-      // Upload de novas imagens
+      // Upload de novas imagens (paralelo, pool de 3)
       const imagensAtualizadas = [...formData.imagens]
       const falhasImagem: string[] = []
+      const urlsImagens = await apiUploadArquivos(novasImagens)
+      urlsImagens.forEach((url, i) => {
+        if (url) imagensAtualizadas.push(url)
+        else falhasImagem.push(novasImagens[i].name)
+      })
 
-      for (const imagem of novasImagens) {
-        const url = await apiUploadArquivo(imagem)
-        if (url) {
-          imagensAtualizadas.push(url)
-        } else {
-          falhasImagem.push(imagem.name)
-        }
-      }
-
-      // Upload de novos vídeos
+      // Upload de novos vídeos (paralelo, pool de 3)
       const videosAtualizados = [...formData.videos]
       const falhasVideo: string[] = []
-
-      for (const video of novosVideos) {
-        const url = await apiUploadArquivo(video)
-        if (url) {
-          videosAtualizados.push(url)
-        } else {
-          falhasVideo.push(video.name)
-        }
-      }
+      const urlsVideos = await apiUploadArquivos(novosVideos)
+      urlsVideos.forEach((url, i) => {
+        if (url) videosAtualizados.push(url)
+        else falhasVideo.push(novosVideos[i].name)
+      })
 
       // Avisos sobre falhas parciais
       const avisosFinal: string[] = []

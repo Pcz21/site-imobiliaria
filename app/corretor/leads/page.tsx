@@ -57,8 +57,11 @@ function formatarData(iso: string): string {
 function linkWhatsapp(lead: Lead): string {
   const d = (lead.whatsapp || "").replace(/\D/g, "")
   const phone = d.length === 10 || d.length === 11 ? `55${d}` : d
-  const imovel = lead.imovelTitulo ? ` sobre o imóvel "${lead.imovelTitulo}"` : ""
-  const texto = `Olá, ${lead.nome}! Aqui é da Fabiju Imóveis. Recebemos seu interesse${imovel}. Como podemos te ajudar?`
+  // Remove U+FFFD (caracteres corrompidos em dados antigos) e espaços duplicados
+  const nome = (lead.nome || "").replace(/�/g, "").replace(/\s+/g, " ").trim()
+  const titulo = (lead.imovelTitulo || "").replace(/�/g, "").replace(/\s+/g, " ").trim()
+  const imovel = titulo ? ` sobre o imóvel "${titulo}"` : ""
+  const texto = `Olá, ${nome}! Aqui é da Fabiju Imóveis. Recebemos seu interesse${imovel}. Como podemos te ajudar?`
   return `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`
 }
 

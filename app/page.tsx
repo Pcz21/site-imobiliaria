@@ -39,7 +39,7 @@ export default function HomePage() {
           <div className="fade-in-up mb-5 flex items-center justify-center gap-3">
             <span className="h-px w-7 bg-gold/70" />
             <span className="tracking-luxe text-[10px] font-medium uppercase text-gold sm:text-xs">
-              Fabiju Imóveis · Itapevi, SP
+              Fabiju Imóveis · Barueri e Osasco, SP
             </span>
             <span className="h-px w-7 bg-gold/70" />
           </div>
@@ -170,7 +170,7 @@ export default function HomePage() {
 
               <div className="mt-6 space-y-4 text-pretty leading-relaxed text-muted-foreground">
                 <p>
-                  Atuando em <strong className="font-medium text-foreground">Itapevi e região</strong>,
+                  Atuando em <strong className="font-medium text-foreground">Barueri, Osasco e região</strong>,
                   a Fabiju conduz cada negociação com transparência e proximidade —
                   da primeira visita à assinatura do contrato.
                 </p>
@@ -186,7 +186,7 @@ export default function HomePage() {
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
                 {[
                   { Icon: UserCheck,  texto: "Atendimento personalizado" },
-                  { Icon: MapPin,     texto: "Itapevi e região" },
+                  { Icon: MapPin,     texto: "Barueri, Osasco e região" },
                   { Icon: BadgeCheck, texto: "Transparência total" },
                 ].map(({ Icon, texto }) => (
                   <div key={texto} className="flex items-center gap-2.5">

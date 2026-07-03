@@ -1,20 +1,18 @@
 namespace ApiImobiliaria.Services;
 
 /// <summary>
-/// Armazenamento em disco local (fallback de desenvolvimento).
-/// Grava em {ContentRoot}/uploads/{chave} e devolve a URL absoluta servida
-/// pelo middleware de arquivos estáticos em /uploads. NÃO use em produção:
-/// o sistema de arquivos é efêmero e some a cada deploy.
+/// Armazenamento em disco local (fallback quando o R2 não está configurado).
+/// Grava em {ContentRoot}/uploads/{chave} e devolve URL RELATIVA (/uploads/...):
+/// o navegador resolve na origem do site, e o Nginx repassa /uploads/ para a API.
+/// (URL absoluta com o host da API quebrava em produção: apontava p/ 127.0.0.1:5162.)
 /// </summary>
 public class LocalDiskStorageService : IStorageService
 {
     private readonly IWebHostEnvironment _env;
-    private readonly IHttpContextAccessor _http;
 
-    public LocalDiskStorageService(IWebHostEnvironment env, IHttpContextAccessor http)
+    public LocalDiskStorageService(IWebHostEnvironment env)
     {
         _env = env;
-        _http = http;
     }
 
     public async Task<string> SalvarAsync(Stream conteudo, string chave, string contentType, CancellationToken ct = default)
@@ -26,7 +24,6 @@ public class LocalDiskStorageService : IStorageService
         await using (var stream = new FileStream(caminho, FileMode.Create))
             await conteudo.CopyToAsync(stream, ct);
 
-        var req = _http.HttpContext!.Request;
-        return $"{req.Scheme}://{req.Host}/uploads/{chave}";
+        return $"/uploads/{chave}";
     }
 }

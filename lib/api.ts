@@ -171,6 +171,16 @@ export async function apiRegistrarLead(id: number): Promise<void> {
   }
 }
 
+// Registra 1 visualização (chamado apenas pela página pública do imóvel,
+// no browser, após checagens de sessão/dedupe). Fire-and-forget.
+export async function apiRegistrarVisualizacao(id: number): Promise<void> {
+  try {
+    await fetch(`/api/imoveis/${id}/visualizacoes`, { method: "POST" })
+  } catch {
+    // fire-and-forget
+  }
+}
+
 export async function apiAtualizarImovel(
   id: number,
   dados: {
@@ -333,6 +343,28 @@ export async function apiUploadArquivo(file: File): Promise<string | null> {
     console.error(`[upload] Erro de rede ao enviar "${file.name}":`, e)
     return null
   }
+}
+
+// Envia vários arquivos em paralelo (pool limitado) preservando a ordem.
+// 3 simultâneos: acelera lotes grandes (ex.: 20 fotos) sem saturar a conexão.
+export async function apiUploadArquivos(
+  files: File[],
+  concorrencia = 3
+): Promise<(string | null)[]> {
+  const resultados: (string | null)[] = new Array(files.length).fill(null)
+  let proximo = 0
+
+  async function worker() {
+    while (proximo < files.length) {
+      const i = proximo++
+      resultados[i] = await apiUploadArquivo(files[i])
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(concorrencia, files.length) }, worker)
+  )
+  return resultados
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
