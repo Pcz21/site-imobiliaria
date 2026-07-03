@@ -1,0 +1,19 @@
+# /etc/systemd/system/fabiju.service
+# Next.js (next start); o Nginx faz o proxy.
+# Espelha a unit instalada em produção (User=paulo, dono do clone).
+[Unit]
+Description=Fabiju Next.js
+After=network.target fabiju-api.service
+
+[Service]
+WorkingDirectory=/var/www/fabiju
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=5
+SyslogIdentifier=fabiju
+User=paulo
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+[Install]
+WantedBy=multi-user.target

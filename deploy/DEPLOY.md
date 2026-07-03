@@ -78,11 +78,11 @@ sudo chown -R www-data:www-data /var/www/fabiju /var/www/fabiju-api
 
 # systemd
 sudo cp deploy/systemd/fabiju-api.service /etc/systemd/system/
-sudo cp deploy/systemd/fabiju-web.service /etc/systemd/system/
+sudo cp deploy/systemd/fabiju.service /etc/systemd/system/
 #   confira o caminho do node:  which node   (ajuste o ExecStart se != /usr/bin/node)
 sudo systemctl daemon-reload
-sudo systemctl enable --now fabiju-api fabiju-web
-systemctl status fabiju-api fabiju-web --no-pager
+sudo systemctl enable --now fabiju-api fabiju
+systemctl status fabiju-api fabiju --no-pager
 curl -s -o /dev/null -w "API %{http_code}\n" http://127.0.0.1:5162/api/imoveis
 curl -s -o /dev/null -w "WEB %{http_code}\n" http://127.0.0.1:3000/corretor/login
 ```
@@ -123,6 +123,6 @@ sudo bash /var/www/fabiju/deploy/deploy.sh   # git pull + publish + build + rest
 ## Logs / troubleshooting
 ```bash
 journalctl -u fabiju-api -f
-journalctl -u fabiju-web -f
+journalctl -u fabiju -f
 sudo tail -f /var/log/nginx/error.log
 ```

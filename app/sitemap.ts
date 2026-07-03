@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+// Fallback é o domínio público: sitemap com localhost destrói a indexação
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fabijuimoveis.com.br"
 const API_URL = process.env.API_URL || "http://localhost:5162"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

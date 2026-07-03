@@ -11,6 +11,8 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https: http:",
+      // Mapa do imóvel: iframe do Google Maps (sem frame-src, default-src 'self' bloqueia)
+      "frame-src 'self' https://maps.google.com https://www.google.com",
       "font-src 'self' data:",
       "connect-src 'self' https: http:",
       "frame-ancestors 'self'",
