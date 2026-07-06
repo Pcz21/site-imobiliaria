@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Building2, Heart, User, LayoutDashboard } from "lucide-react"
+import { Home, Building2, Heart, User, LayoutDashboard, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function Header({ loggedIn }: { loggedIn: boolean }) {
@@ -51,6 +51,10 @@ export function Header({ loggedIn }: { loggedIn: boolean }) {
             <Link href="/favoritos" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
               <Heart className="h-4 w-4" />
               Favoritos
+            </Link>
+            <Link href="/contato" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
+              <Mail className="h-4 w-4" />
+              Contato
             </Link>
             {loggedIn ? (
               <div className="flex items-center gap-3">

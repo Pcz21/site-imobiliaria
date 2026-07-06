@@ -55,6 +55,13 @@ export function Footer() {
                 Ver Imóveis
               </Link>
 
+              <Link
+                href="/contato"
+                className="text-sm text-muted-foreground hover:text-primary"
+              >
+                Contato
+              </Link>
+
             </nav>
 
           </div>

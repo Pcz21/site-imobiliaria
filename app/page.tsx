@@ -5,6 +5,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AvaliacoesGoogle } from "@/components/avaliacoes-google"
+import { HubspotForm } from "@/components/hubspot-form"
 import { WHATSAPP_OFICIAL } from "@/lib/data"
 
 const WHATSAPP = `https://wa.me/${WHATSAPP_OFICIAL}?text=` +
@@ -208,6 +209,30 @@ export default function HomePage() {
               </div>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* CONTATO — formulário HubSpot (CRM) */}
+      <section id="contato" className="border-t bg-card">
+        <div className="container mx-auto max-w-3xl px-4 py-16">
+          <div className="mb-8 text-center">
+            <div className="mb-4 flex items-center justify-center gap-3">
+              <span className="h-px w-7 bg-gold/70" />
+              <span className="tracking-luxe text-[10px] font-medium uppercase text-gold sm:text-xs">
+                Fale conosco
+              </span>
+              <span className="h-px w-7 bg-gold/70" />
+            </div>
+            <h2 className="text-3xl font-medium tracking-tight">
+              Entre em <span className="text-gold">contato</span>
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              Deixe seus dados que a Fabiju retorna o quanto antes.
+            </p>
+          </div>
+          <div className="rounded-2xl border bg-background p-6 sm:p-8">
+            <HubspotForm />
           </div>
         </div>
       </section>

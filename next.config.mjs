@@ -8,11 +8,14 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      // HubSpot (formulário CRM): script de embed + analytics de formulários
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.hsforms.net https://js.hscollectedforms.net https://js.hs-banner.com https://js.hs-analytics.net",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https: http:",
       "font-src 'self' data:",
       "connect-src 'self' https: http:",
+      // O formulário do HubSpot renderiza dentro de um iframe próprio
+      "frame-src 'self' https://*.hsforms.com https://*.hsforms.net https://*.hubspot.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
