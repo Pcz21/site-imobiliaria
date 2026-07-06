@@ -31,8 +31,17 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  // Base para resolver URLs relativas (ex.: imagens OG /uploads/...) no domínio público
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://fabijuimoveis.com.br'),
   title: 'Fabiju Imóveis - Imóveis em Barueri, Osasco e Região',
   description: 'Compra, venda e aluguel de imóveis em Barueri, Osasco e região. Casas, apartamentos e terrenos com atendimento personalizado e profissional.',
+  openGraph: {
+    title: 'Fabiju Imóveis - Imóveis em Barueri, Osasco e Região',
+    description: 'Compra, venda e aluguel de imóveis em Barueri, Osasco e região.',
+    type: 'website',
+    locale: 'pt_BR',
+    siteName: 'Fabiju Imóveis',
+  },
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',

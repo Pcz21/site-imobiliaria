@@ -12,6 +12,8 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.hsforms.net https://js.hscollectedforms.net https://js.hs-banner.com https://js.hs-analytics.net",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https: http:",
+      // Mapa do imóvel: iframe do Google Maps (sem frame-src, default-src 'self' bloqueia)
+      "frame-src 'self' https://maps.google.com https://www.google.com",
       "font-src 'self' data:",
       "connect-src 'self' https: http:",
       // O formulário do HubSpot renderiza dentro de um iframe próprio

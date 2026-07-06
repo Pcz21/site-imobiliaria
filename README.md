@@ -30,19 +30,19 @@ O sistema possui:
 
 ### Home
 
-(coloque print)
+<img width="1900" height="1079" alt="Captura de tela 2026-07-03 190433" src="https://github.com/user-attachments/assets/ae1181d6-0257-4581-8f6e-dd5e80687cf7" />
 
 ### Listagem de Imóveis
 
-(coloque print)
+<img width="1900" height="1067" alt="Captura de tela 2026-07-03 191406" src="https://github.com/user-attachments/assets/af142232-ed9c-470c-91c9-295de11ca678" />
 
 ### Detalhes do Imóvel
 
-(coloque print)
+<img width="1900" height="1079" alt="image" src="https://github.com/user-attachments/assets/e6a37075-e8fb-4a88-ac1a-ed74c64f3c01" />
 
 ### Painel Administrativo
 
-(coloque print)
+<img width="1903" height="1079" alt="Captura de tela 2026-07-03 191259" src="https://github.com/user-attachments/assets/d9a6e6ed-0cbd-4430-99f6-41365468f084" />
 
 ---
 
