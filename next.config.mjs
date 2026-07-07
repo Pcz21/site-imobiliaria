@@ -12,12 +12,10 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.hsforms.net https://js.hscollectedforms.net https://js.hs-banner.com https://js.hs-analytics.net",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https: http:",
-      // Mapa do imóvel: iframe do Google Maps (sem frame-src, default-src 'self' bloqueia)
-      "frame-src 'self' https://maps.google.com https://www.google.com",
+      // frame-src ÚNICO (CSP ignora a diretiva repetida): mapa do Google + iframe do HubSpot
+      "frame-src 'self' https://maps.google.com https://www.google.com https://*.hsforms.com https://*.hsforms.net https://*.hubspot.com",
       "font-src 'self' data:",
       "connect-src 'self' https: http:",
-      // O formulário do HubSpot renderiza dentro de um iframe próprio
-      "frame-src 'self' https://*.hsforms.com https://*.hsforms.net https://*.hubspot.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",

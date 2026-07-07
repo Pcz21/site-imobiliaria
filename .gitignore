@@ -31,4 +31,7 @@ ApiImobiliaria/ApiImobiliaria/_backup_uploads_teste/
 # Arquivos locais de ferramentas (Claude Code / agentes)
 .claude/
 .agents/
-skills-lock.json.next.rootbak/
+skills-lock.json
+
+# Backup local do .next criado durante deploy
+.next.rootbak/
