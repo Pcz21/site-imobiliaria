@@ -41,6 +41,15 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'pt_BR',
     siteName: 'Fabiju Imóveis',
+    // Capa oficial do link (WhatsApp/redes). Sem og:image definida, os apps
+    // usavam um cache antigo do site (versão escura).
+    images: [{ url: '/hero.jpg', width: 1920, height: 1080, alt: 'Fabiju Imóveis' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Fabiju Imóveis - Imóveis em Barueri, Osasco e Região',
+    description: 'Compra, venda e aluguel de imóveis em Barueri, Osasco e região.',
+    images: ['/hero.jpg'],
   },
   icons: {
     icon: '/logo.png',
