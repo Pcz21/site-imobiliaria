@@ -51,10 +51,8 @@ export const metadata: Metadata = {
     description: 'Compra, venda e aluguel de imóveis em Barueri, Osasco e região.',
     images: ['/hero.jpg'],
   },
-  icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
-  },
+  // Favicon: app/icon.svg e app/apple-icon.png (file conventions do App Router)
+  // substituem o antigo logo.png (print da versão escura do site).
 }
 
 export default async function RootLayout({
