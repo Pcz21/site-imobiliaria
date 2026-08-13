@@ -124,6 +124,8 @@ npm run dev
 
 Paulo Cézar Silva dos Santos
 
+Site pessoal: https://pcz-sites.vercel.app/
+
 LinkedIn:
 www.linkedin.com/in/paulo-cézar-silva-dos-santos-836455276
 
